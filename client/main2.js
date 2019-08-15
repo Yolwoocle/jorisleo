@@ -43,10 +43,16 @@ function create ()
     player.setCollideWorldBounds(true);
     player.body.setGravityY(config.physics.arcade.gravity.y);
     this.physics.add.collider(player, platforms);
+
+    cactus = this.physics.add.sprite(450, 450, 'player')
+    cactus.setCollideWorldBounds(true);
+    cactus.body.setGravityY(config.physics.arcade.gravity.y);
+    cactus.setBounce(0.2);
     
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
+
 }
 
 function update ()

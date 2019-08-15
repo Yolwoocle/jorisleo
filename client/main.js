@@ -20,7 +20,7 @@ var game = new Phaser.Game(config);
 
 function preload ()
 {
-    this.load.image('pigeon', 'assets/pigeon.png');
+    this.load.image('player', 'assets/player.png');
     this.load.image('ground', 'assets/tileGround.png');
 }
 var platforms
@@ -29,9 +29,9 @@ function create ()
     platforms = this.physics.add.staticGroup();
     platforms.create(400, 590, 'ground').setScale(40, 1).refreshBody();
 
-    var pigeon = this.add.image(100, 555, 'pigeon');
-    pigeon.displayWidth = 50;
-    pigeon.displayHeight = 50;
+    var player = this.add.image(100, 555, 'player');
+    player.displayWidth = 50;
+    player.displayHeight = 50;
 }
 
 function update ()

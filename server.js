@@ -5,7 +5,7 @@ var randomNum
 app.use(express.static('client')); 
 
 app.get('/',function(req,res){
-    res.sendFile(__dirname + '/client/main.html');  
+    res.sendFile(__dirname + '/client/main.js');  
 })
 
 var theMax = 6;
