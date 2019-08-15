@@ -30,6 +30,10 @@ function preload ()
 {
     this.load.image('player', 'sprites/player.png');
     this.load.image('ground', 'sprites/tileGround.png');
+    this.load.image('cactusS1', 'sprites/cactusS1');
+    this.load.image('cactusS2', 'sprites/cactusS2');
+    this.load.image('cactusB1', 'sprites/cactusB1');
+    this.load.image('cactusB2', 'sprites/cactusB2');
 }
 
 function create ()
@@ -50,11 +54,11 @@ function create ()
     player.body.setGravityY(config.physics.arcade.gravity.y);
     this.physics.add.collider(player, this.groundLayer);
 
-    cactus = this.physics.add.sprite(450, 450, 'player')
+    cactus = this.physics.add.sprite(450, 450, 'cactusS1')
     cactus.setCollideWorldBounds(true);
     cactus.body.setGravityY(config.physics.arcade.gravity.y);
     cactus.setBounce(0.2);
-    
+    this.physics.add.collider(cactus, platforms);
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
