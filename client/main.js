@@ -42,6 +42,7 @@ function preload ()
 
 function create ()
 {
+    let scene = this;
     this.groundLayer = this.physics.add.staticGroup({
         key: 'ground',
         frameQuantity: 40
@@ -61,7 +62,7 @@ function create ()
         cactus = this.physics.add.sprite(posX, 0, 'cactusS1')
         cactus.setCollideWorldBounds(true);
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
-        cactus.setBounce(0.2);
+        cactus.setBounce(Math.random());
         this.physics.add.collider(cactus, this.groundLayer);
         cactus.setVelocityX(gameOptions.platformSpeed * -1)
     }
@@ -72,6 +73,9 @@ function create ()
     }, null, this);
     
     pointer = this.input.activePointer;
+    this.input.on('pointerup', function(pointer){
+        scene.addCactus(750);
+    })
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
@@ -100,7 +104,6 @@ function update ()
     
     if (pointer.isDown)
     {
-        this.addCactus(750);
     }
 
 } 
