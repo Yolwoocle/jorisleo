@@ -5,10 +5,10 @@ var randomNum
 app.use(express.static('client')); 
 
 app.get('/',function(req,res){
-    res.sendFile(__dirname + '/client/index.html');  
+    res.sendFile(__dirname + '/client/main.html');  
 })
 
-var theMax = 5;
+var theMax = 6;
 randomNum = getRndInteger(1,theMax);
 app.listen(3000,function(){
 
@@ -28,6 +28,10 @@ switch (randomNum){
     case 4:
     console.log("Ne confonds jamais Java et JavaScript!");
         break;
+
+    case 5:
+        console.log("5 fruits et légumes par jours pour remplir ta cuisine rapidement !");
+        break;        
 
     case theMax:
     console.log("Une array commence toujours par 0!");
