@@ -60,9 +60,13 @@ function create ()
     cactus.setCollideWorldBounds(true);
     cactus.body.setGravityY(config.physics.arcade.gravity.y);
     cactus.setBounce(0.2);
+
     this.physics.add.collider(cactus, this.groundLayer);
     cactus.setVelocityX(gameOptions.platformSpeed * -1)
-    this.physics.add.collider(cactus, player);
+    
+    this.physics.add.overlap(player, cactus, function() {
+        console.log('Touché')
+    }, null, this);
     
     pointer = this.input.activePointer;
 
@@ -90,8 +94,6 @@ function update ()
     }
 
     //CACTUS
-
-var velocityCactusX = 1;
     
     if (pointer.isDown)
     {
@@ -99,5 +101,4 @@ var velocityCactusX = 1;
         cactus.setY(0);
     }
 
-    cactus.setX(cactus.x - velocityCactusX);
 } 
