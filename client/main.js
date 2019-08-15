@@ -19,11 +19,12 @@ var config = {
 
 var gameOptions = {
     jumpVelocity: 700,
-    platformSpeed: 10000,
+    platformSpeed: 500,
     playerStartPosition: 100
 }
 
-var platforms, cursors, player, map, groundLayer;
+var platforms, cursors, player, map, groundLayer, obstacleGroup;
+var cactus;
 var keys = {};
 var pointer
 
@@ -56,13 +57,15 @@ function create ()
     player.body.setGravityY(config.physics.arcade.gravity.y);
     this.physics.add.collider(player, this.groundLayer);
 
-    cactus = this.physics.add.sprite(10000, 450, 'cactusS1')
-    cactus.setCollideWorldBounds(true);
-    cactus.body.setGravityY(config.physics.arcade.gravity.y);
-    cactus.setBounce(0.2);
+    this.addCactus = function(posX) {
+        cactus = this.physics.add.sprite(posX, 0, 'cactusS1')
+        cactus.setCollideWorldBounds(true);
+        cactus.body.setGravityY(config.physics.arcade.gravity.y);
+        cactus.setBounce(0.2);
+        this.physics.add.collider(cactus, this.groundLayer);
+        cactus.setVelocityX(gameOptions.platformSpeed * -1)
+    }
 
-    this.physics.add.collider(cactus, this.groundLayer);
-    cactus.setVelocityX(gameOptions.platformSpeed * -1)
     
     this.physics.add.overlap(player, cactus, function() {
         console.log('Touché')
@@ -97,8 +100,7 @@ function update ()
     
     if (pointer.isDown)
     {
-        cactus.setX(750);
-        cactus.setY(0);
+        this.addCactus(750);
     }
 
 } 
