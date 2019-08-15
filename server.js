@@ -8,7 +8,7 @@ app.get('/',function(req,res){
     res.sendFile(__dirname + '/client/main.js');  
 })
 
-var theMax = 6;
+var theMax = 7;
 randomNum = getRndInteger(1,theMax);
 app.listen(3000,function(){
 
@@ -30,8 +30,11 @@ switch (randomNum){
         break;
 
     case 5:
-        console.log("5 fruits et légumes par jours pour remplir ta cuisine rapidement !");
-        break;        
+        console.log("5 fruits et légumes par jour pour garder la forme !");
+        break;  
+        
+    case 6:
+        console.log("Ne dépense pas tes diamants sur une houe !");
 
     case theMax:
     console.log("Une array commence toujours par 0!");
