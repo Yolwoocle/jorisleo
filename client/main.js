@@ -14,7 +14,7 @@ var config = {
         create: create,
         update: update
     },
-    backgroundColor: "#000033"
+    backgroundColor: "#f7f7f7"
 };
 
 var gameOptions = {
@@ -31,12 +31,12 @@ var game = new Phaser.Game(config);
 
 function preload ()
 {
-    this.load.image('player', 'sprites/player.png');
+    this.load.image('player', 'sprites/playerJump1.png');
     this.load.image('ground', 'sprites/tileGround.png');
-    this.load.image('cactusS1', 'sprites/cactusS1');
-    this.load.image('cactusS2', 'sprites/cactusS2');
-    this.load.image('cactusB1', 'sprites/cactusB1');
-    this.load.image('cactusB2', 'sprites/cactusB2');
+    this.load.image('cactusS1', 'sprites/cactusS1.png');
+    this.load.image('cactusS2', 'sprites/cactusS2.png');
+    this.load.image('cactusB1', 'sprites/cactusB1.png');
+    this.load.image('cactusB2', 'sprites/cactusB2.png');
 }
 
 function create ()
@@ -91,10 +91,13 @@ function update ()
 
     //CACTUS
 
+var velocityCactusX = 1;
     
     if (pointer.isDown)
     {
-        cactus.setX(450);
-        cactus.setY(450);
+        cactus.setX(750);
+        cactus.setY(0);
     }
+
+    cactus.setX(cactus.x - velocityCactusX);
 } 
