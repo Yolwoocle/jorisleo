@@ -39,21 +39,26 @@ function preload ()
 
 function create ()
 {
-    platforms = this.physics.add.staticGroup();
-    platforms.create(400, 590, 'ground').setScale(40, 1).refreshBody();
+    this.groundLayer = this.physics.add.staticGroup({
+        key: 'ground',
+        frameQuantity: 40
+      });
+      Phaser.Actions.PlaceOnLine(this.groundLayer.getChildren(),
+        new Phaser.Geom.Line(10, 590, 810, 590));
+      this.groundLayer.refresh();
 
     player = this.physics.add.sprite(100, 450, 'player');
     player.displayWidth = 50;
     player.displayHeight = 50;
     player.setCollideWorldBounds(true);
     player.body.setGravityY(config.physics.arcade.gravity.y);
-    this.physics.add.collider(player, platforms);
+    this.physics.add.collider(player, this.groundLayer);
 
     cactus = this.physics.add.sprite(10000, 450, 'cactusS1')
     cactus.setCollideWorldBounds(true);
     cactus.body.setGravityY(config.physics.arcade.gravity.y);
     cactus.setBounce(0.2);
-    this.physics.add.collider(cactus, platforms);
+    this.physics.add.collider(cactus, this.groundLayer);
     
     pointer = this.input.activePointer;
 
