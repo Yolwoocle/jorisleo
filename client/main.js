@@ -18,7 +18,9 @@ var config = {
 };
 
 var gameOptions = {
-    jumpVelocity: 700
+    jumpVelocity: 700,
+    platformSpeed: 10000,
+    playerStartPosition: 100
 }
 
 var platforms, cursors, player, map, groundLayer;
@@ -47,7 +49,7 @@ function create ()
         new Phaser.Geom.Line(10, 590, 810, 590));
       this.groundLayer.refresh();
 
-    player = this.physics.add.sprite(100, 450, 'player');
+    player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'player');
     player.displayWidth = 50;
     player.displayHeight = 50;
     player.setCollideWorldBounds(true);
@@ -59,6 +61,8 @@ function create ()
     cactus.body.setGravityY(config.physics.arcade.gravity.y);
     cactus.setBounce(0.2);
     this.physics.add.collider(cactus, this.groundLayer);
+    cactus.setVelocityX(gameOptions.platformSpeed * -1)
+    this.physics.add.collider(cactus, player);
     
     pointer = this.input.activePointer;
 
@@ -70,6 +74,7 @@ function create ()
 function update ()
 {
     //PLAYER
+    player.x = gameOptions.playerStartPosition;
 
     if (player.body.touching.down && keys.UP.isDown)
     {
