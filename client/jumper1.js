@@ -23,7 +23,7 @@ let game;
   
          // physics settings
          physics: {
-             default: "arcade"
+             default: "agitgircade"
          }
      }
      game = new Phaser.Game(gameConfig);
