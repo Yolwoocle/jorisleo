@@ -25,8 +25,10 @@ var gameOptions = {
 
 var platforms, cursors, player, map, groundLayer, obstacleGroup;
 var cactus;
+var dyna;
 var keys = {};
-var pointer
+var pointer;
+var life = 3;
 
 var game = new Phaser.Game(config);
 
@@ -38,6 +40,8 @@ function preload ()
     this.load.image('cactusS2', 'sprites/cactusS2.png');
     this.load.image('cactusB1', 'sprites/cactusB1.png');
     this.load.image('cactusB2', 'sprites/cactusB2.png');
+    this.load.image('dynamite', 'sprites/dynamite.png');
+    this.load.image('flash', 'sprites/whiteFlash.png');
 }
 
 function create ()
@@ -64,17 +68,38 @@ function create ()
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
         cactus.setBounce(Math.random());
         this.physics.add.collider(cactus, this.groundLayer);
-        cactus.setVelocityX(gameOptions.platformSpeed * -1)
+        cactus.setVelocityX(gameOptions.platformSpeed * -1.55)
     }
 
+    this.addDyna = function(posX) {
+        var dynaGravityY = 500;
+        dyna = this.physics.add.sprite(posX, 0, 'dynamite')
+        dyna.setCollideWorldBounds(true);
+        dyna.body.setGravityY(dynaGravityY);
+        this.physics.add.collider(dyna, this.groundLayer);
+        console.log(dyna);
+        //var angle;
+
+    }
+
+    flash = this.add.sprite(0, 0, 'flash');
+    flash.displayWidth = config.width;
+    flash.displayHeight = config.height;
+    flash.setAlpha(0);
     
     this.physics.add.overlap(player, cactus, function() {
-        console.log('Touché')
+        life -= 1;
+        console.log(life);
     }, null, this);
     
     pointer = this.input.activePointer;
     this.input.on('pointerup', function(pointer){
         scene.addCactus(750);
+    })
+
+    pointer = this.input.activePointer;
+    this.input.on('pointerup', function(pointer){
+        scene.addDyna(750);
     })
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -100,10 +125,21 @@ function update ()
         player.body.setGravityY(config.physics.arcade.gravity.y);
     }
 
-    //CACTUS
-    
-    if (pointer.isDown)
-    {
-    }
+    if (dyna) {
+        dyna.angle += 5;
+        if (dyna.body.touching.down) {
+            dyna.destroy();
+            flash.setAlpha(1);
+            if (flash.alpha > 0) {
+                flash.setAlpha(flash.alpha - 0.05);
+                flash.depth = 999999;
+                console.log("ok");
+            }
+            else {
+                flash.setAlpha(0);
+            }
+        }
+    } 
 
-} 
+
+}
