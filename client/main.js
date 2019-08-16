@@ -206,8 +206,7 @@ function create ()
         ptero.play('ptero'); 
         ptero.body.setGravityY(-config.physics.arcade.gravity.y);
         ptero.hasTouched = false;
-        ptero.scaleX = ratio;
-        ptero.scaleY = ratio;
+        ptero.speed = ratio + 6;
         this.physics.add.overlap(player, ptero, function(cldPlayer, cldPtero) {
             if (!cldPtero.hasTouched) {
                 cldPtero.hasTouched = true;
@@ -252,12 +251,14 @@ function create ()
     
     pointer = this.input.activePointer;
     let clkDownD;
+    let clkDR;
     this.input.on('pointerdown', function(pointer) {
         switch (pointer.buttons) {
             case 1:
                     clkDownD = new Date()
             break;
             case 2: 
+                clkDR = new Date()
             break;
         }
     })
@@ -284,7 +285,8 @@ function create ()
             break;
             case 2: 
                 if (canPtero) {
-                    scene.addPtero(pointer.worldY, 1);
+                    let holdTime = (new Date() - clkDR)
+                    scene.addPtero(pointer.worldY, holdTime / 240);
                     canPtero = false;
                     setTimeout(function() {
                         canPtero = true;
@@ -380,10 +382,6 @@ function update () {
     }
     //dynamite spawn
     
-
-
-
-
     if (dyna) {
         dyna.angle += 5;
         if (dyna.body && dyna.body.touching.down) { 
@@ -430,10 +428,10 @@ function update () {
         let pte = pteroT[p];
         if (pte.isDyna && pte.x > gameOptions.playerStartPosition) {
             pte.flipX = true;
-            pte.x += 6;
+            pte.x += pte.speed;
         }
         else {
-            pte.x -= 6;
+            pte.x -= pte.speed;
         }
     }
 } 
