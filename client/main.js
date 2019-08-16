@@ -251,9 +251,21 @@ function create ()
     flash.setAlpha(0);
     
     pointer = this.input.activePointer;
+    let clkDownD;
+    this.input.on('pointerdown', function(pointer) {
+        switch (pointer.buttons) {
+            case 1:
+                    clkDownD = new Date()
+            break;
+            case 2: 
+            break;
+        }
+    })
+
     this.input.on('pointerup', function(pointer){
         switch (pointer.buttons) {
             case 1:
+                console.log(new Date() - clkDownD);
                 if (canCactus) {
                     scene.addCactus((Math.random() * 200) + 600);
                     canCactus = false;
@@ -292,9 +304,9 @@ function update () {
     }
 
     
-    playerShadow.alpha = (player.y / config.height) * 0.5;
-    playerShadow.scaleX = ((player.y / config.height) * 0.3) + 0.7;
-    playerShadow.scaleY = 0.7
+    playerShadow.alpha = (player.y / config.height) * 0.3;
+    playerShadow.scaleX = ((player.y / config.height) * 0.5) + 0.7;
+    playerShadow.scaleY = 0.5
 
     if (player.isHit) {
         if (player.alpha > 0.5) {
@@ -370,7 +382,12 @@ function update () {
         if (dyna.body && dyna.body.touching.down) { 
             dyna.destroy();
             flash.setAlpha(1);
-            cact.x = 0 - cact.x;
+            for (c in cactusT) {
+                cactusT[c].isDyna = true;
+            }
+            for (p in pteroT) {
+                pteroT[p].isDyna = true;
+            }
         }    
     
     if (flash.alpha > 0) {
@@ -384,18 +401,32 @@ function update () {
     } 
 
     for (c in cactusT) {
-        let cact = cactusT[c];
-        if (cact.hasLanded) {
-            cact.x -= 4;
-            if (cact.x < 0) {
-                cactusT[c].destroy();
-                delete cactusT[c];
+        if (cactusT[c]) {
+            let cact = cactusT[c];
+            if (cact.hasLanded) {
+                if (cact.isDyna && cact.x > gameOptions.playerStartPosition) {
+                    cact.x += 4;
+                }
+                else {
+                    cact.x -= 4;
+                }
+                if (cact.x < 0) {
+                    cactusT[c].destroy();
+                    delete cactusT[c];
+                    cactusT = cactusT.filter(function(ct) { if(ct) {return true} });
+                }
             }
         }
     }
 
     for (p in pteroT) {
         let pte = pteroT[p];
-        pte.x -= 6;
+        if (pte.isDyna && pte.x > gameOptions.playerStartPosition) {
+            pte.flipX = true;
+            pte.x += 6;
+        }
+        else {
+            pte.x -= 6;
+        }
     }
 } 
