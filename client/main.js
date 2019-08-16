@@ -24,12 +24,15 @@ var gameOptions = {
     playerStartPosition: 100,
     jumpNumber:3,
     cactusLimit: 800,
+    pteroLimit: 500,
     dynaLimit: 30000,
     dynaSpawnTime: 50 //time in frames
 }
 
+document.addEventListener('contextmenu', e => e.preventDefault());
 var platforms, cursors, player, map, groundLayer, obstacleGroup, groundLayer2, playerShadow;
 var cactusT = [];
+var pteroT = [];
 var canCactus = true;
 var dyna;
 var keys = {};
@@ -38,6 +41,7 @@ var life = 3;
 var hasCrouched = false;
 var crouchCounter
 var canDyna = true
+var canPtero = true
 
 var game = new Phaser.Game(config);
 
@@ -66,6 +70,10 @@ function preload ()
     this.load.spritesheet("playerShadow", "sprites/testShadw.png",{
         frameWidth: 20,
         frameHeight: 20
+    });
+    this.load.spritesheet("ptero", "sprites/ptero.png",{
+        frameWidth: 46,
+        frameHeight: 42
     });
     this.load.image('ground', 'sprites/tileGround.png');
     this.load.image('cactusS1', 'sprites/cactusS1.png');
@@ -99,6 +107,12 @@ function create ()
     this.anims.create({
         key: "playerJump",
         frames: this.anims.generateFrameNumbers("playerJump"),
+        frameRate: 10,
+    });
+    
+    this.anims.create({
+        key: "ptero",
+        frames: this.anims.generateFrameNumbers("ptero"),
         frameRate: 10,
     });
     player.play('playerWalk'); 
@@ -153,6 +167,21 @@ function create ()
         console.log(cactusT);
     }
 
+    this.addPtero = function(posY) {
+        let ptero = this.physics.add.sprite(800, posY, 'ptero');
+        ptero.play('ptero'); 
+        ptero.body.setGravityY(-config.physics.arcade.gravity.y);
+        ptero.hasTouched = false;
+        this.physics.add.overlap(player, ptero, function(cldPlayer, cldPtero) {
+            if (!cldPtero.hasTouched) {
+                cldPtero.hasTouched = true;
+                life -= 1;
+                console.log('Touché');
+            }
+        }, null, this);
+        pteroT.push(ptero);
+        console.log(pteroT);
+    }
 
     //ADD DYNA
     this.addDyna = function(posX, posY) {
@@ -177,12 +206,26 @@ function create ()
     
     pointer = this.input.activePointer;
     this.input.on('pointerdown', function(pointer){
-        if (canCactus) {
-            scene.addCactus((Math.random() * 200) + 600);
-            canCactus = false;
-            setTimeout(function() {
-                canCactus = true;
-            }, gameOptions.cactusLimit)
+        switch (pointer.buttons) {
+            case 1:
+                if (canCactus) {
+                    scene.addCactus((Math.random() * 200) + 600);
+                    canCactus = false;
+                    setTimeout(function() {
+                        canCactus = true;
+                    }, gameOptions.cactusLimit)
+                } 
+            break;
+            case 2: 
+                console.log('ptero');
+                if (canPtero) {
+                    scene.addPtero(pointer.worldY);
+                    canPtero = false;
+                    setTimeout(function() {
+                        canPtero = true;
+                    }, gameOptions.pteroLimit)
+                } 
+            break
         }
     })
 
@@ -271,7 +314,7 @@ function update () {
         flash.setAlpha(0);
     }
         
-} 
+    } 
 
     for (c in cactusT) {
         let cact = cactusT[c];
@@ -282,5 +325,10 @@ function update () {
                 delete cactusT[c];
             }
         }
+    }
+
+    for (p in pteroT) {
+        let pte = pteroT[p];
+        pte.x -= 6;
     }
 } 
