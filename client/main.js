@@ -45,6 +45,7 @@ var crouchCounter
 var canDyna = true
 var canPtero = true
 var canDouble = false
+var canSpawn = false
 
 var game = new Phaser.Game(config);
 
@@ -90,6 +91,7 @@ function preload ()
     this.load.image('cactusB2', 'sprites/cactusB2.png');
     this.load.image('dynamite', 'sprites/dynamite.png');
     this.load.image('flash', 'sprites/whiteFlash.png');
+    this.load.image('cloud', 'sprites/cloud.png');
 }
 
 function create ()
@@ -137,7 +139,7 @@ function create ()
     player.setCollideWorldBounds(true);
     player.body.setGravityY(config.physics.arcade.gravity.y);
     player.jumps = 0;
-    player.isHit = false; 
+    player.isHit = false;
     player.isInvulnerable = false; 
     this.physics.add.collider(player, this.groundLayer);
 
@@ -160,7 +162,7 @@ function create ()
             player.jumps = -gameOptions.doubleJumpsMax;
         }
         if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25 && player.body.touching.down){
-            player.setVelocityY(-gameOptions.jumpVelocity*(crouchCounter/2500));
+            player.setVelocityY(-gameOptions.jumpVelocity*0.8);
         }
         hasCrouched = false;
     }
@@ -181,7 +183,7 @@ function create ()
         scene.jump();
     });
 
-    this.addCactus = function(posX,ratio,bounce) {
+    this.addCactus = function(posX,posY,ratio,bounce) {
         let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
         let cactus = this.physics.add.sprite(posX, 0, catT[Math.floor(Math.random() * 4)]);
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
@@ -273,7 +275,7 @@ function create ()
                     let holdTime = (new Date() - clkDownD)
                     console.log(holdTime);
                     if (holdTime > 500){
-                        scene.addCactus((Math.random() * 200) + 600, 3, 0.1);
+                        
                     }
                     else if (1000 > holdTime){
                         scene.addCactus((Math.random() * 200) + 600, 1, getRndInteger(0.5,0.9));
@@ -438,4 +440,13 @@ function update () {
             pte.x -= 6;
         }
     }
+
+    /*
+    CACTUS SPAWNING
+    */
+    
+    if (!canSpawn){
+
+    }
+    scene.addCactus((Math.random() * 200) + 600, 3, 0.1);
 } 
