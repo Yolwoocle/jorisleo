@@ -26,7 +26,7 @@ var gameOptions = {
     cactusLimit: 800,
     pteroLimit: 500,
     dynaLimit: 10000,
-    dynaSpawnTime: 75, //time in frames
+    dynaSpawnTime: 50, //time in frames
     doubleJumpsMax: 2,
     invu: 1600
 }
@@ -207,6 +207,7 @@ function create ()
         ptero.play('ptero'); 
         ptero.body.setGravityY(-config.physics.arcade.gravity.y);
         ptero.hasTouched = false;
+        ptero.scaleY = 5;
         this.physics.add.overlap(player, ptero, function(cldPlayer, cldPtero) {
             if (!cldPtero.hasTouched) {
                 cldPtero.hasTouched = true;
@@ -250,7 +251,7 @@ function create ()
     flash.setAlpha(0);
     
     pointer = this.input.activePointer;
-    this.input.on('pointerdown', function(pointer){
+    this.input.on('pointerup', function(pointer){
         switch (pointer.buttons) {
             case 1:
                 if (canCactus) {
@@ -306,7 +307,7 @@ function update () {
     else {
         player.alpha = 1;   
     }
-   
+
     if (keys.DOWN.isDown || keys.S.isDown) {
         if (!player.body.touching.down) {
             player.setTexture('playerSit'); 
@@ -328,8 +329,14 @@ function update () {
     else {
         player.body.setGravityY(config.physics.arcade.gravity.y);
     }
-    if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25 && player.body.touching.down){
+    if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25){
         this.jump();
+        if (player.body.touching.down && crouchCounter > gameOptions.dynaSpawnTime && (!dyna || !dyna.body) && canDyna) {
+            this.addDyna(player.x, player.y-50);
+        }
+    }
+    if (crouchCounter > gameOptions.dynaSpawnTime){
+        player.setTexture('playerSit')
     }
 
     if (life == 0) {
@@ -353,9 +360,7 @@ function update () {
         crouchCounter = 0;
     }
     //dynamite spawn
-    if (player.body.touching.down && (keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.dynaSpawnTime && (!dyna || !dyna.body) && canDyna) {
-        this.addDyna(player.x, player.y-50);
-    }
+    
 
 
 
