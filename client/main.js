@@ -9,6 +9,7 @@ var config = {
             debug: false
         }
     },
+    pixelArt: true,
     scene: {
         preload: preload,
         create: create,
@@ -37,7 +38,10 @@ var game = new Phaser.Game(config);
 
 function preload ()
 {
-    this.load.image('player', 'sprites/playerJump1.png');
+    this.load.spritesheet("playerWalk", "sprites/dinoWalk.png",{
+        frameWidth: 46,
+        frameHeight: 49
+      });
     this.load.image('ground', 'sprites/tileGround.png');
     this.load.image('cactusS1', 'sprites/cactusS1.png');
     this.load.image('cactusS2', 'sprites/cactusS2.png');
@@ -59,9 +63,17 @@ function create ()
       this.groundLayer.refresh();
     groundLayer2 = this.add.tileSprite(400,590,800,20, 'ground')
 
-    player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'player');
-    player.displayWidth = 50;
-    player.displayHeight = 50;
+    player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'playerS2');
+    
+    this.anims.create({
+        key: "playerWalk",
+        frames: this.anims.generateFrameNumbers("playerWalk"),
+        frameRate: 10,
+        repeat: -1
+      });
+    player.play('playerWalk'); 
+    player.setSize(46, 49, true);
+      
     player.setCollideWorldBounds(true);
     player.body.setGravityY(config.physics.arcade.gravity.y);
     player.jumps = 0;
@@ -100,7 +112,7 @@ function create ()
         dyna.setCollideWorldBounds(true);
         dyna.body.setGravityY(dynaGravityY);
         this.physics.add.collider(dyna, this.groundLayer);
-        console.log(dyna);
+        // console.log(dyna);
         //var angle;
 
     }
@@ -127,17 +139,25 @@ function create ()
     })
 
     pointer = this.input.activePointer;
-    this.input.on('pointerup', function(pointer){
-        scene.addDyna(750);
+    this.input.on('pointerup', function(pointer) {
+        if (!dyna || !dyna.body) {
+            scene.addDyna(750);
+        }
     })
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
+    keys.Z = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S); 
 
     this.input.keyboard.on('keydown_UP', function() {
         scene.jump();
     });
     
+    this.input.keyboard.on('keydown_Z', function() {
+        scene.jump();
+    });
+    console.log(player);
 }
 
 function update ()
@@ -147,19 +167,19 @@ function update ()
     if (groundLayer2) { 
         groundLayer2.tilePositionX += 3
     }
-
-    if (keys.DOWN.isDown)
+   
+    if (keys.DOWN.isDown || keys.S.isDown)
     {
+        //player.setTexture();
         player.body.setGravityY(10000);
     }
-    if (keys.DOWN.isUp)
-    {
+    else {
         player.body.setGravityY(config.physics.arcade.gravity.y);
     }
 
     if (dyna) {
         dyna.angle += 5;
-        if (dyna.body.touching.down) {
+        if (dyna.body && dyna.body.touching.down) {
             dyna.destroy();
             flash.setAlpha(1);
             if (flash.alpha > 0) {
