@@ -8,7 +8,7 @@ app.get('/',function(req,res){
     res.sendFile(__dirname + '/client/main.js');  
 })
 
-var theMax = 7;
+var theMax = 8;
 randomNum = getRndInteger(1,theMax);
 app.listen(3000,function(){
 
@@ -35,6 +35,10 @@ switch (randomNum){
         
     case 6:
         console.log("Ne dépense pas tes diamants sur une houe !");
+        break;
+
+    case 7:
+        console.log("Le singulier de spaghetti est spaghetto !");
 
     case theMax:
     console.log("Une array commence toujours par 0!");

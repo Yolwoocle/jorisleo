@@ -32,12 +32,15 @@ var dyna;
 var keys = {};
 var pointer;
 var life = 3;
+var hasCrouched = false;
+//var hasDoubled = false
 
 var game = new Phaser.Game(config);
 
 function preload ()
 {
-    this.load.image('player', 'sprites/playerJump1.png');
+    this.load.image('playerStand', 'sprites/playerJump1.png');
+    this.load.image('playerSit', 'sprites/playerSit.png');
     this.load.image('ground', 'sprites/tileGround.png');
     this.load.image('cactusS1', 'sprites/cactusS1.png');
     this.load.image('cactusS2', 'sprites/cactusS2.png');
@@ -59,7 +62,7 @@ function create ()
       this.groundLayer.refresh();
     groundLayer2 = this.add.tileSprite(400,590,800,20, 'ground')
 
-    player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'player');
+    player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'playerStand');
     player.displayWidth = 50;
     player.displayHeight = 50;
     player.setCollideWorldBounds(true);
@@ -71,15 +74,21 @@ function create ()
         if (player.body.touching.down) {
             player.jumps = 0;
         }
+        if (!player.body.touching.down && hasCrouched /*&& !hasDoubled*/){
+            player.jumps -= 3;
+            //hasDoubled = true;
+        }
+        
         if (player.jumps < gameOptions.jumpNumber) {
             player.jumps++;
             player.setVelocityY(-gameOptions.jumpVelocity);
         }
+        hasCrouched = false;
     }
 
     this.addCactus = function(posX) {
         let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
-        cactus = this.physics.add.sprite(posX, 0, catT[Math.floor(Math.random() * 4)])
+        cactus = this.physics.add.sprite(posX, 0, catT[Math.floor(Math.random() * 4)]);
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
         cactus.setBounce(Math.random());
         this.physics.add.collider(cactus, this.groundLayer);
@@ -96,7 +105,7 @@ function create ()
 
     this.addDyna = function(posX) {
         var dynaGravityY = 500;
-        dyna = this.physics.add.sprite(posX, 0, 'dynamite')
+        dyna = this.physics.add.sprite(posX, 0, 'dynamite');
         dyna.setCollideWorldBounds(true);
         dyna.body.setGravityY(dynaGravityY);
         this.physics.add.collider(dyna, this.groundLayer);
@@ -105,9 +114,7 @@ function create ()
 
     }
 
-    flash = this.add.sprite(0, 0, 'flash');
-    flash.displayWidth = config.width;
-    flash.displayHeight = config.height;
+    flash = this.add.sprite(config.width/2, config.height/2, 'flash');
     flash.setAlpha(0);
     
     this.physics.add.overlap(player, cactus, function() {
@@ -128,7 +135,9 @@ function create ()
 
     pointer = this.input.activePointer;
     this.input.on('pointerup', function(pointer){
-        scene.addDyna(750);
+        if (!dyna || !dyna.body) {
+            scene.addDyna(750);
+        }
     })
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -142,45 +151,48 @@ function create ()
 
 function update ()
 {
+    console.log(player.jumps);
     //PLAYER
     player.x = gameOptions.playerStartPosition;
     if (groundLayer2) { 
         groundLayer2.tilePositionX += 3
     }
-
-    if (keys.DOWN.isDown)
-    {
+    if (keys.DOWN.isDown){
         player.body.setGravityY(10000);
+        hasCrouched = true
     }
-    if (keys.DOWN.isUp)
-    {
+    if (keys.DOWN.isUp){
         player.body.setGravityY(config.physics.arcade.gravity.y);
     }
+    if (player.body.touching.down){
+        hasCrouched = false; 
+        //hasDoubled = false;
+    }
+    console.log(gameOptions.jumpNumber);
+
+
+
 
     if (dyna) {
         dyna.angle += 5;
-        if (dyna.body.touching.down) {
+        if (dyna.body && dyna.body.touching.down) { 
             dyna.destroy();
             flash.setAlpha(1);
-            if (flash.alpha > 0) {
-                flash.setAlpha(flash.alpha - 0.05);
-                flash.depth = 999999;
-                console.log("ok");
-            }
-            else {
-                flash.setAlpha(0);
-            }
+        }    
+        
+        if (flash.alpha > 0) {
+            flash.setAlpha(flash.alpha - 0.1);
+            flash.depth = 999999;
         }
+        else {
+            flash.setAlpha(0);
+        }
+        
     } 
+
+
+
     if (cactus && cactus.body.touching.down) {
         cactus.setVelocityX(gameOptions.platformSpeed * -1)
     }
-
-    //CACTUS
-    
-    if (pointer.isDown)
-    {
-    }
-
-
 }
