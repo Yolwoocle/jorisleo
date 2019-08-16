@@ -22,11 +22,11 @@ var gameOptions = {
     jumpVelocity: 700,
     platformSpeed: 200,
     playerStartPosition: 100,
-    jumpNumber:3,
+    jumpNumber: 2,
     cactusLimit: 800,
     pteroLimit: 500,
-    dynaLimit: 30000,
-    dynaSpawnTime: 50, //time in frames
+    dynaLimit: 10000,
+    dynaSpawnTime: 75, //time in frames
     doubleJumpsMax: 2,
 }
 
@@ -128,13 +128,14 @@ function create ()
     this.jump = function () {  
         if (player.body.touching.down) {
             player.jumps = 0;
+            
         }
-        if (!player.body.touching.down && hasCrouched /*&& !hasDoubled*/){
+        if (!player.body.touching.down && hasCrouched && canDouble/*&& !hasDoubled*/){
             player.jumps -= gameOptions.doubleJumpsMax;
+            canDouble = false;
             //hasDoubled = true;
-        }
-                
-        if (player.jumps < gameOptions.jumpNumber) {
+        }       
+        if (player.jumps < gameOptions.jumpNumber && !(crouchCounter > 25)) {
             player.jumps++;
             player.setVelocityY(-gameOptions.jumpVelocity);
             player.play('playerJump'); 
@@ -142,14 +143,30 @@ function create ()
         if (player.jumps < -gameOptions.doubleJumpsMax){
             player.jumps = -gameOptions.doubleJumpsMax;
         }
+        if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25 && player.body.touching.down){
+            player.setVelocityY(-gameOptions.jumpVelocity*0.8);
+        }
         hasCrouched = false;
     }
+
+    keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+    keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
+    keys.Z = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S); 
+
+    this.input.keyboard.on('keydown_UP', function() {
+        scene.jump(); 
+    });
+    
+    this.input.keyboard.on('keydown_Z', function() {
+        scene.jump();
+    });
 
     this.addCactus = function(posX) {
         let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
         let cactus = this.physics.add.sprite(posX, 0, catT[Math.floor(Math.random() * 4)]);
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
-        cactus.setBounce(Math.random());
+        cactus.setBounce(getRndInteger(0.5,0.9));
         this.physics.add.collider(cactus, this.groundLayer, function(cldPlayer, cldCactus) {
             cactus.hasLanded = true;
         });
@@ -233,18 +250,7 @@ function create ()
 
     pointer = this.input.activePointer;
 
-    keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-    keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
-    keys.Z = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-    keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S); 
 
-    this.input.keyboard.on('keydown_UP', function() {
-        scene.jump(); 
-    });
-    
-    this.input.keyboard.on('keydown_Z', function() {
-        scene.jump();
-    });
     console.log(player);
 }
 
@@ -279,8 +285,12 @@ function update () {
     else {
         player.body.setGravityY(config.physics.arcade.gravity.y);
     }
+    if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25 && player.body.touching.down){
+        this.jump();
+    }
     if (player.body.touching.down){
         hasCrouched = false; 
+        canDouble = true;
         if (keys.DOWN.isDown || keys.S.isDown){
             crouchCounter++;
         }
@@ -294,6 +304,7 @@ function update () {
     else{
         crouchCounter = 0;
     }
+    //dynamite spawn
     if (player.body.touching.down && (keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.dynaSpawnTime && (!dyna || !dyna.body) && canDyna) {
         this.addDyna(player.x, player.y-50);
     }
@@ -306,6 +317,7 @@ function update () {
         if (dyna.body && dyna.body.touching.down) { 
             dyna.destroy();
             flash.setAlpha(1);
+            cact.x = 0 - cact.x;
         }    
     
     if (flash.alpha > 0) {
