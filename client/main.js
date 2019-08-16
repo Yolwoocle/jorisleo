@@ -6,7 +6,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 800 },
-            debug: false
+            debug: false,
         }
     },
     pixelArt: true,
@@ -26,7 +26,7 @@ var gameOptions = {
     cactusLimit: 800,
     pteroLimit: 500,
     dynaLimit: 10000,
-    dynaSpawnTime: 50, //time in frames
+    dynaSpawnTime: 80, //time in frames
     doubleJumpsMax: 2,
     invu: 1600
 }
@@ -83,6 +83,7 @@ function preload ()
         frameHeight: 41
     });
     this.load.image('ground', 'sprites/tileGround.png');
+    this.load.image('playerSitGift', 'sprites/dinoSitGift.png');
     this.load.image('cactusS1', 'sprites/cactusS1.png');
     this.load.image('cactusS2', 'sprites/cactusS2.png');
     this.load.image('cactusB1', 'sprites/cactusB1.png');
@@ -168,6 +169,9 @@ function create ()
     keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
     keys.Z = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
     keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S); 
+    keys.Y = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y); 
+
+
 
     this.input.keyboard.on('keydown_UP', function() {
         scene.jump(); 
@@ -267,14 +271,12 @@ function create ()
             case 1:
                 if (canCactus) {
                     let holdTime = (new Date() - clkDownD)
-                    if (holdTime > 1000 && 3000 > holdTime){
-                        scene.addCactus((Math.random() * 200) + 600, holdTime / 1000, 0.1);
+                    console.log(holdTime);
+                    if (holdTime > 500){
+                        scene.addCactus((Math.random() * 200) + 600, 3, 0.1);
                     }
                     else if (1000 > holdTime){
                         scene.addCactus((Math.random() * 200) + 600, 1, getRndInteger(0.5,0.9));
-                    }
-                    else {
-                        scene.addCactus((Math.random() * 200) + 600, 0.5, getRndInteger(0.1));
                     }
                     canCactus = false;
                     setTimeout(function() {
@@ -356,7 +358,7 @@ function update () {
         }
     }
     if (crouchCounter > gameOptions.dynaSpawnTime){
-        player.setTexture('playerSit')
+        player.setTexture('playerSitGift')
     }
 
     if (life == 0) {
