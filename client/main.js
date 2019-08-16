@@ -162,7 +162,7 @@ function create ()
             player.jumps = -gameOptions.doubleJumpsMax;
         }
         if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25 && player.body.touching.down){
-            player.setVelocityY(-gameOptions.jumpVelocity*0.8);
+            player.setVelocityY(-gameOptions.jumpVelocity*(crouchCounter/2500));
         }
         hasCrouched = false;
     }
@@ -180,11 +180,13 @@ function create ()
         scene.jump();
     });
 
-    this.addCactus = function(posX) {
+    this.addCactus = function(posX,ratio,bounce) {
         let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
         let cactus = this.physics.add.sprite(posX, 0, catT[Math.floor(Math.random() * 4)]);
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
-        cactus.setBounce(getRndInteger(0.5,0.9));
+        cactus.setBounce(bounce);
+        cactus.scaleX = ratio;
+        cactus.scaleY = ratio;
         this.physics.add.collider(cactus, this.groundLayer, function(cldPlayer, cldCactus) {
             cactus.hasLanded = true;
         });
@@ -202,12 +204,13 @@ function create ()
         cactusT.push(cactus);
     }
 
-    this.addPtero = function(posY) {
+    this.addPtero = function(posY, ratio) {
         let ptero = this.physics.add.sprite(800, posY, 'ptero');
         ptero.play('ptero'); 
         ptero.body.setGravityY(-config.physics.arcade.gravity.y);
         ptero.hasTouched = false;
-        ptero.scaleY = 5;
+        ptero.scaleX = ratio;
+        ptero.scaleY = ratio;
         this.physics.add.overlap(player, ptero, function(cldPlayer, cldPtero) {
             if (!cldPtero.hasTouched) {
                 cldPtero.hasTouched = true;
@@ -265,9 +268,17 @@ function create ()
     this.input.on('pointerup', function(pointer){
         switch (pointer.buttons) {
             case 1:
-                console.log(new Date() - clkDownD);
                 if (canCactus) {
-                    scene.addCactus((Math.random() * 200) + 600);
+                    let holdTime = (new Date() - clkDownD)
+                    if (holdTime > 1000 && 3000 > holdTime){
+                        scene.addCactus((Math.random() * 200) + 600, holdTime / 1000, 0.1);
+                    }
+                    else if (1000 > holdTime){
+                        scene.addCactus((Math.random() * 200) + 600, 1, getRndInteger(0.5,0.9));
+                    }
+                    else {
+                        scene.addCactus((Math.random() * 200) + 600, 0.5, getRndInteger(0.1));
+                    }
                     canCactus = false;
                     setTimeout(function() {
                         canCactus = true;
@@ -277,7 +288,7 @@ function create ()
             case 2: 
                 console.log('ptero');
                 if (canPtero) {
-                    scene.addPtero(pointer.worldY);
+                    scene.addPtero(pointer.worldY, 1);
                     canPtero = false;
                     setTimeout(function() {
                         canPtero = true;
@@ -293,7 +304,7 @@ function create ()
     console.log(player);
 }
 
-var isSitted = false;
+var isSit = false;
 var sitTimeout;
 
 function update () {
@@ -323,14 +334,14 @@ function update () {
     if (keys.DOWN.isDown || keys.S.isDown) {
         if (!player.body.touching.down) {
             player.setTexture('playerSit'); 
-            isSitted = true;
+            isSit = true;
             window.clearTimeout(sitTimeout);
             sitTimeout = setTimeout(function() {
-                isSitted = false;
+                isSit = false;
             }, 200)
         }
         else {
-            if (!isSitted) {
+            if (!isSit) {
                 player.setTexture('playerCrouch'); 
             }
         }
@@ -362,7 +373,7 @@ function update () {
             crouchCounter++;
         }
         if(player.anims.currentAnim.key != 'playerWalk') {
-            if (!isSitted && !player.isHit) {
+            if (!isSit && !player.isHit) {
                 player.play('playerWalk'); 
             }
         }
