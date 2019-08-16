@@ -94,14 +94,11 @@ function preload ()
 function create ()
 {
     let scene = this;
-    this.groundLayer = this.physics.add.staticGroup({
-        key: 'ground',
-        frameQuantity: 40
-      });
-      Phaser.Actions.PlaceOnLine(this.groundLayer.getChildren(),
-        new Phaser.Geom.Line(10, 590, 810, 590));
-      this.groundLayer.refresh();
+    this.groundLayer = this.physics.add.staticSprite(10, 590, 'ground');
+    this.groundLayer.setSize(800, 20);
+    this.groundLayer.body.immovable = true;
     groundLayer2 = this.add.tileSprite(400,590,800,35, 'ground')
+
 
     player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'playerS2');
     player.depth = 100;
