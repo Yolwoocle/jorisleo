@@ -28,6 +28,7 @@ var gameOptions = {
     dynaLimit: 30000,
     dynaSpawnTime: 50, //time in frames
     doubleJumpsMax: 2,
+    invu: 1600
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
@@ -69,13 +70,17 @@ function preload ()
         frameWidth: 46,
         frameHeight: 49
     });
-    this.load.spritesheet("playerShadow", "sprites/testShadw.png",{
+    this.load.spritesheet("playerHit", "sprites/dinoDead.png",{
+        frameWidth: 44,
+        frameHeight: 47
+    });
+    this.load.spritesheet("playerShadow", "sprites/testShadow.png",{
         frameWidth: 20,
         frameHeight: 20
     });
     this.load.spritesheet("ptero", "sprites/ptero.png",{
         frameWidth: 46,
-        frameHeight: 42
+        frameHeight: 41
     });
     this.load.image('ground', 'sprites/tileGround.png');
     this.load.image('cactusS1', 'sprites/cactusS1.png');
@@ -99,7 +104,12 @@ function create ()
     groundLayer2 = this.add.tileSprite(400,590,800,35, 'ground')
 
     player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'playerS2');
-    
+    player.depth = 100;
+    playerShadow = this.add.sprite((gameOptions.playerStartPosition - 5), 580, 'playerShadow');
+    playerShadow.depth = 1;
+    playerShadow.alpha = 0.2;
+    playerShadow.blendMode = 'MULTIPLY'; 
+
     this.anims.create({
         key: "playerWalk",
         frames: this.anims.generateFrameNumbers("playerWalk"),
@@ -111,18 +121,26 @@ function create ()
         frames: this.anims.generateFrameNumbers("playerJump"),
         frameRate: 10,
     });
+    this.anims.create({
+        key: "playerHitA",
+        frames: this.anims.generateFrameNumbers("playerHit"),
+        frameRate: 10
+    });
     
     this.anims.create({
         key: "ptero",
         frames: this.anims.generateFrameNumbers("ptero"),
         frameRate: 10,
+        repeat: -1
     });
-    player.play('playerWalk'); 
+    player.play('playerJump'); 
     player.setSize(46, 49, true);
       
     player.setCollideWorldBounds(true);
     player.body.setGravityY(config.physics.arcade.gravity.y);
     player.jumps = 0;
+    player.isHit = false; 
+    player.isInvulnerable = false; 
     this.physics.add.collider(player, this.groundLayer);
 
     this.jump = function () {  
@@ -161,12 +179,10 @@ function create ()
         this.physics.add.overlap(player, cactus, function(cldPlayer, cldCactus) {
             if (!cldCactus.hasTouched) {
                 cldCactus.hasTouched = true;
-                life -= 1;
-                console.log('Touché');
+                scene.hitDino();
             }
         }, null, this);
         cactusT.push(cactus);
-        console.log(cactusT);
     }
 
     this.addPtero = function(posY) {
@@ -177,12 +193,10 @@ function create ()
         this.physics.add.overlap(player, ptero, function(cldPlayer, cldPtero) {
             if (!cldPtero.hasTouched) {
                 cldPtero.hasTouched = true;
-                life -= 1;
-                console.log('Touché');
+                scene.hitDino();
             }
         }, null, this);
         pteroT.push(ptero);
-        console.log(pteroT);
     }
 
     //ADD DYNA
@@ -201,6 +215,18 @@ function create ()
         // console.log(dyna);
         //var angle;
 
+    }
+
+    this.hitDino = function () {
+        if (!player.isHit) {
+            player.play('playerHitA')
+            life -= 1;
+            player.isHit = true; 
+            setTimeout(function() {
+                player.isHit = false; 
+            }, gameOptions.invu)
+            console.log('Touché');
+        }
     }
 
     flash = this.add.sprite(config.width/2, config.height/2, 'flash');
@@ -257,6 +283,23 @@ function update () {
     if (groundLayer2) { 
         groundLayer2.tilePositionX += 4
     }
+
+    
+    playerShadow.alpha = (player.y / config.height) * 0.5;
+    playerShadow.scaleX = ((player.y / config.height) * 0.3) + 0.7;
+    playerShadow.scaleY = 0.7
+
+    if (player.isHit) {
+        if (player.alpha > 0.5) {
+            player.alpha = 0.4;
+        }
+        else {
+            player.alpha = 1;
+        }
+    }
+    else {
+        player.alpha = 1;   
+    }
    
     if (keys.DOWN.isDown || keys.S.isDown) {
         if (!player.body.touching.down) {
@@ -279,13 +322,18 @@ function update () {
     else {
         player.body.setGravityY(config.physics.arcade.gravity.y);
     }
+
+    if (life == 0) {
+        this.scene.pause();
+    }
+
     if (player.body.touching.down){
         hasCrouched = false; 
         if (keys.DOWN.isDown || keys.S.isDown){
             crouchCounter++;
         }
         if(player.anims.currentAnim.key != 'playerWalk') {
-            if (!isSitted) {
+            if (!isSitted && !player.isHit) {
                 player.play('playerWalk'); 
             }
         }
