@@ -25,7 +25,8 @@ var gameOptions = {
     jumpNumber:3,
     cactusLimit: 800,
     dynaLimit: 30000,
-    dynaSpawnTime: 50 //time in frames
+    dynaSpawnTime: 50, //time in frames
+    doubleJumpsMax: 2,
 }
 
 var platforms, cursors, player, map, groundLayer, obstacleGroup, groundLayer2, playerShadow;
@@ -38,6 +39,7 @@ var life = 3;
 var hasCrouched = false;
 var crouchCounter
 var canDyna = true
+var canDouble = false
 
 var game = new Phaser.Game(config);
 
@@ -109,22 +111,22 @@ function create ()
     player.jumps = 0;
     this.physics.add.collider(player, this.groundLayer);
 
-    this.jump = function () {
+    this.jump = function () {  
         if (player.body.touching.down) {
             player.jumps = 0;
         }
         if (!player.body.touching.down && hasCrouched /*&& !hasDoubled*/){
-            player.jumps -= 3;
+            player.jumps -= gameOptions.doubleJumpsMax;
             //hasDoubled = true;
         }
-        
+                
         if (player.jumps < gameOptions.jumpNumber) {
             player.jumps++;
             player.setVelocityY(-gameOptions.jumpVelocity);
             player.play('playerJump'); 
         }
-        if (player.jumps < -1){
-            player.jumps = -1;
+        if (player.jumps < -gameOptions.doubleJumpsMax){
+            player.jumps = -gameOptions.doubleJumpsMax;
         }
         hasCrouched = false;
     }
@@ -194,7 +196,7 @@ function create ()
     keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S); 
 
     this.input.keyboard.on('keydown_UP', function() {
-        scene.jump();
+        scene.jump(); 
     });
     
     this.input.keyboard.on('keydown_Z', function() {
@@ -215,10 +217,10 @@ function update () {
    
     if (keys.DOWN.isDown || keys.S.isDown) {
         if (!player.body.touching.down) {
-           player.setTexture('playerSit'); 
-           isSitted = true;
-           window.clearTimeout(sitTimeout);
-           sitTimeout = setTimeout(function() {
+            player.setTexture('playerSit'); 
+            isSitted = true;
+            window.clearTimeout(sitTimeout);
+            sitTimeout = setTimeout(function() {
                 isSitted = false;
             }, 200)
         }
