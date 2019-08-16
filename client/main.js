@@ -44,7 +44,8 @@ var hasCrouched = false;
 var crouchCounter
 var canDyna = true
 var canPtero = true
-var canDouble = false
+var score
+var canDouble = false;
 var canSpawn = false
 
 var game = new Phaser.Game(config);
@@ -96,7 +97,17 @@ function preload ()
 
 function create ()
 {
-    let scene = this;
+    cactusT = [];
+    pteroT = [];
+    canCactus = true;
+    life = 3
+    hasCrouched = false;
+    crouchCounter
+    canDyna = true
+    canPtero = true
+    canDouble = false;
+    score = 0;
+    scene = this;
     this.groundLayer = this.physics.add.staticSprite(10, 590, 'ground');
     this.groundLayer.setSize(800, 20);
     this.groundLayer.body.immovable = true;
@@ -212,8 +223,7 @@ function create ()
         ptero.play('ptero'); 
         ptero.body.setGravityY(-config.physics.arcade.gravity.y);
         ptero.hasTouched = false;
-        ptero.scaleX = ratio;
-        ptero.scaleY = ratio;
+        ptero.speed = ratio + 6;
         this.physics.add.overlap(player, ptero, function(cldPlayer, cldPtero) {
             if (!cldPtero.hasTouched) {
                 cldPtero.hasTouched = true;
@@ -258,12 +268,14 @@ function create ()
     
     pointer = this.input.activePointer;
     let clkDownD;
+    let clkDR;
     this.input.on('pointerdown', function(pointer) {
         switch (pointer.buttons) {
             case 1:
                     clkDownD = new Date()
             break;
             case 2: 
+                clkDR = new Date()
             break;
         }
     })
@@ -288,7 +300,8 @@ function create ()
             break;
             case 2: 
                 if (canPtero) {
-                    scene.addPtero(pointer.worldY, 1);
+                    let holdTime = (new Date() - clkDR)
+                    scene.addPtero(pointer.worldY, holdTime / 240);
                     canPtero = false;
                     setTimeout(function() {
                         canPtero = true;
@@ -308,6 +321,7 @@ var isSit = false;
 var sitTimeout;
 
 function update () {
+    let scene = this;
     //PLAYER
     player.x = gameOptions.playerStartPosition;
     if (groundLayer2) { 
@@ -363,7 +377,10 @@ function update () {
     }
 
     if (life == 0) {
-        this.scene.pause();
+        setTimeout(function() {
+            scene.scene.restart();
+        }, 1200)
+        this.scene.pause()
     }
 
     if (player.body.touching.down){
@@ -384,10 +401,6 @@ function update () {
     }
     //dynamite spawn
     
-
-
-
-
     if (dyna) {
         dyna.angle += 5;
         if (dyna.body && dyna.body.touching.down) { 
@@ -434,10 +447,10 @@ function update () {
         let pte = pteroT[p];
         if (pte.isDyna && pte.x > gameOptions.playerStartPosition) {
             pte.flipX = true;
-            pte.x += 6;
+            pte.x += pte.speed;
         }
         else {
-            pte.x -= 6;
+            pte.x -= pte.speed;
         }
     }
 
