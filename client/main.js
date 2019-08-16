@@ -23,7 +23,9 @@ var gameOptions = {
     platformSpeed: 200,
     playerStartPosition: 100,
     jumpNumber:3,
-    cactusLimit: 800
+    cactusLimit: 800,
+    dynaLimit: 30000,
+    dynaSpawnTime: 50 //time in frames
 }
 
 var platforms, cursors, player, map, groundLayer, obstacleGroup, groundLayer2, playerShadow;
@@ -34,9 +36,14 @@ var keys = {};
 var pointer;
 var life = 3;
 var hasCrouched = false;
-//var hasDoubled = false
+var crouchCounter
+var canDyna = true
 
 var game = new Phaser.Game(config);
+
+function getRndInteger(min, max) {
+    return Math.random() * (max - min) + min;
+}
 
 function preload ()
 {
@@ -116,6 +123,9 @@ function create ()
             player.setVelocityY(-gameOptions.jumpVelocity);
             player.play('playerJump'); 
         }
+        if (player.jumps < -1){
+            player.jumps = -1;
+        }
         hasCrouched = false;
     }
 
@@ -143,12 +153,20 @@ function create ()
         console.log(cactusT);
     }
 
-    this.addDyna = function(posX) {
+
+    //ADD DYNA
+    this.addDyna = function(posX, posY) {
         var dynaGravityY = 500;
-        dyna = this.physics.add.sprite(posX, 0, 'dynamite');
+        dyna = this.physics.add.sprite(posX, posY, 'dynamite');
         dyna.setCollideWorldBounds(true);
         dyna.body.setGravityY(dynaGravityY);
         this.physics.add.collider(dyna, this.groundLayer);
+        dyna.setVelocityX(300);
+        dyna.setVelocityY(-700);
+        canDyna = false
+        setTimeout(function(){
+            canDyna = true
+        }, gameOptions.dynaLimit)
         // console.log(dyna);
         //var angle;
 
@@ -169,11 +187,6 @@ function create ()
     })
 
     pointer = this.input.activePointer;
-    this.input.on('pointerup', function(pointer) {
-        if (!dyna || !dyna.body) {
-            scene.addDyna(750);
-        }
-    })
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN); 
@@ -223,6 +236,9 @@ function update () {
     }
     if (player.body.touching.down){
         hasCrouched = false; 
+        if (keys.DOWN.isDown || keys.S.isDown){
+            crouchCounter++;
+        }
         if(player.anims.currentAnim.key != 'playerWalk') {
             if (!isSitted) {
                 player.play('playerWalk'); 
@@ -230,6 +246,15 @@ function update () {
         }
         //hasDoubled = false;
     }
+    else{
+        crouchCounter = 0;
+    }
+    if (player.body.touching.down && (keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.dynaSpawnTime && (!dyna || !dyna.body) && canDyna) {
+        this.addDyna(player.x, player.y-50);
+    }
+
+
+
 
     if (dyna) {
         dyna.angle += 5;
@@ -237,16 +262,16 @@ function update () {
             dyna.destroy();
             flash.setAlpha(1);
         }    
+    
+    if (flash.alpha > 0) {
+        flash.setAlpha(flash.alpha - 0.1);
+        flash.depth = 999999;
+    }
+    else {
+        flash.setAlpha(0);
+    }
         
-        if (flash.alpha > 0) {
-            flash.setAlpha(flash.alpha - 0.1);
-            flash.depth = 999999;
-        }
-        else {
-            flash.setAlpha(0);
-        }
-        
-    } 
+} 
 
     for (c in cactusT) {
         let cact = cactusT[c];
