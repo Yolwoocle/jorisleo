@@ -6,7 +6,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 800 },
-            debug: false
+            debug: true
         }
     },
     pixelArt: true,
@@ -283,7 +283,6 @@ function create ()
                 } 
             break;
             case 2: 
-                console.log('ptero');
                 if (canPtero) {
                     scene.addPtero(pointer.worldY, 1);
                     canPtero = false;
