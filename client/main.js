@@ -44,7 +44,8 @@ var hasCrouched = false;
 var crouchCounter
 var canDyna = true
 var canPtero = true
-var canDouble = false
+var canDouble = false;
+var score
 
 var game = new Phaser.Game(config);
 
@@ -94,7 +95,17 @@ function preload ()
 
 function create ()
 {
-    let scene = this;
+    cactusT = [];
+    pteroT = [];
+    canCactus = true;
+    life = 3
+    hasCrouched = false;
+    crouchCounter
+    canDyna = true
+    canPtero = true
+    canDouble = false;
+    score = 0;
+    scene = this;
     this.groundLayer = this.physics.add.staticSprite(10, 590, 'ground');
     this.groundLayer.setSize(800, 20);
     this.groundLayer.body.immovable = true;
@@ -308,6 +319,7 @@ var isSit = false;
 var sitTimeout;
 
 function update () {
+    let scene = this;
     //PLAYER
     player.x = gameOptions.playerStartPosition;
     if (groundLayer2) { 
@@ -363,7 +375,10 @@ function update () {
     }
 
     if (life == 0) {
-        this.scene.pause();
+        setTimeout(function() {
+            scene.scene.restart();
+        }, 1200)
+        this.scene.pause()
     }
 
     if (player.body.touching.down){
