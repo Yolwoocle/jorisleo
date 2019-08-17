@@ -30,13 +30,15 @@ var gameOptions = {
     doubleJumpsMax: 2,
     invu: 1600,
     crouchJumpTime: 20,
-    pteroOffset: 100
+    pteroOffset: 100,
+    spawnDelay : 1000,
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
 var platforms, cursors, player, map, groundLayer, obstacleGroup, groundLayer2, playerShadow;
 var cactusT = [];
 var pteroT = [];
+var lifeT = [];
 var canCactus = true;
 var dyna;
 var keys = {};
@@ -106,6 +108,7 @@ function preload ()
     this.load.image('dynamite', 'sprites/dynamite.png');
     this.load.image('flash', 'sprites/whiteFlash.png');
     this.load.image('cloud', 'sprites/cloud.png');
+    this.load.image('life', 'sprites/life.png');
 }
 
 function create ()
@@ -220,7 +223,6 @@ function create ()
                 cactus = this.physics.add.sprite(posX, posY, 'cactusW1');
                 break;
         }    
-        
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
         cactus.setBounce(bounce);
         cactus.scaleX = ratio;
@@ -231,8 +233,27 @@ function create ()
         // this.physics.add.collider(cactus, groundLayer2);
         cactus.hasTouched = false;
         cactus.hasLanded = false;
-        
-
+        cactus.type = type
+        cactus.setInteractive();
+        cactus.on('pointerdown', function(){
+            if(cactus.type === 0){
+                cactus.destroy();
+            }
+            else{
+                cactus.type = 0;
+                cactus.body.setGravityY(10000)
+                cactus.setTexture('cactusS1');
+                cactus.setBounce(0.1);
+                cactus.body.width = cactus.body.width / 2;
+                
+            }
+        })
+        cactus.on('pointerover', function(pointer, localX, localY, event){ 
+            cactus.setAlpha(0.4);
+         });
+        cactus.on('pointerout', function(pointer, localX, localY, event){ 
+            cactus.setAlpha(1);
+         });
         this.physics.add.overlap(player, cactus, function(cldPlayer, cldCactus) {
             if (!cldCactus.hasTouched) {
                 cldCactus.hasTouched = true;
@@ -255,7 +276,41 @@ function create ()
             }
         }, null, this);
         pteroT.push(ptero);
+        ptero.setInteractive();
+        ptero.on('pointerdown', function(){
+                ptero.destroy();
+        })
+        ptero.on('pointerover', function(pointer, localX, localY, event){ 
+            ptero.setAlpha(0.4);
+         });
+        ptero.on('pointerout', function(pointer, localX, localY, event){ 
+            ptero.setAlpha(1);
+         });
     }
+
+    /*this.addLife = function(posX, posY, ratio) {
+        let life = this.physics.add.sprite(posX, posY, 'life');
+        life.play('life'); 
+        life.body.setGravityY(-config.physics.arcade.gravity.y);
+        life.hasTouched = false;
+        life.speed = ratio + 6;
+        this.physics.add.overlap(player, life, function(cldPlayer, cldlife) {
+            if (!cldlife.hasTouched) {
+                gameOptions.life += 1
+            }
+        }, null, this);
+        lifeT.push(life);
+        life.setInteractive();
+        life.on('pointerdown', function(){
+                life.destroy();
+        })
+        life.on('pointerover', function(pointer, localX, localY, event){ 
+            life.setAlpha(0.4);
+         });
+        life.on('pointerout', function(pointer, localX, localY, event){ 
+            life.setAlpha(1);
+         });
+    }*/
 
     //ADD DYNA
     this.addDyna = function(posX, posY) {
@@ -305,14 +360,14 @@ function create ()
     })
 
     this.input.on('pointerup', function(pointer){
-        switch (pointer.buttons) {
+        /*switch (pointer.buttons) {
             case 1:
-                
+               
             break;
             case 2: 
-                
+            
             break
-        }
+        }*/
     })
 
     pointer = this.input.activePointer;
@@ -324,6 +379,7 @@ function create ()
 var isSit = false;
 var sitTimeout;
 var spawnTimeout;
+var waveType;
 
 function update () {
     if(config.debug){
@@ -466,28 +522,30 @@ function update () {
     /*
     CACTUS SPAWNING
     */
-   
-    console.log(canSpawn);
-    if (!canSpawn){
+    waveType = getRandomRnd(0, 10)
+
+    gameOptions.spawnDelay -= 0.1
+
+    console.log(gameOptions.spawnDelay);
+    if (!canSpawn && !spawnTimeout){
         spawnTimeout = setTimeout(function() {
-            canSpawn = true
-            
-        }, 500)  
+            canSpawn = true;
+            spawnTimeout = false;
+        }, gameOptions.spawnDelay)  
     };
 
     if(canSpawn){
-        canSpawn = false
+        canSpawn = false;
         var type = getRandomRnd(0, 3);
-        console.log("typeupdte", type)
+        console.log("typeupdate", type);
         switch(type){
                 case 0:
-                    this.addCactus(config.width , getRandom(0, 700), 1, 0.1, 0);
+                    this.addCactus(config.width , 550/*getRandom(600, 600)*/, 1, 0.1, 0);
                     break;
                 case 1:
-                    this.addCactus(config.width , getRandom(0, 700), 1, 1, 1);
+                    this.addCactus(config.width , getRandom(0, 700), 2, 1, 1);
                     break;
                 case 2:
-                    console.log("PTEROOOOOO")
                     let randomSeed = gameOptions.pteroOffset;
                     let randomOne;
                     let randomTwo;
@@ -503,8 +561,11 @@ function update () {
                     else{
                         randomTwo = player.y + randomSeed
                     }
-                    this.addPtero(screen.width, getRandom(randomOne, randomTwo), 1);
+                    this.addPtero(config.width, getRandom(randomOne, randomTwo), 1);
                     break;
+                /*case 3:
+                    this.addLife(config.width, getRandom(0, config.height), 1);
+                    break;*/
                 default:
                     console.log("ERROR SPAWN ENEMY");
             }        
