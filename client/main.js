@@ -51,6 +51,7 @@ var canPtero = true
 var score
 var canDouble = false;
 var canSpawn = true
+var jumpCounter
 
 
 var game = new Phaser.Game(config);
@@ -63,12 +64,12 @@ function getRandomRnd(min, max) {
     return Math.floor(Math.random() * (max - min) ) + min;
   }
 
-function getRandomPlayerY(radius) {
-    return Math.floor(Math.random() * (max - min) ) + min;
-  }
-
 function preload ()
 {
+    audio: {
+        disableWebAudio: true
+    }
+
     this.load.spritesheet("playerWalk", "sprites/dinoWalk.png",{
         frameWidth: 46,
         frameHeight: 49
@@ -109,6 +110,23 @@ function preload ()
     this.load.image('flash', 'sprites/whiteFlash.png');
     this.load.image('cloud', 'sprites/cloud.png');
     this.load.image('life', 'sprites/life.png');
+
+    this.load.audio('jump1', 'sounds/jump1.wav');
+    this.sound.add('jump1');
+    this.load.audio('jump2', 'sounds/jump2.wav');
+    this.sound.add('jump2');
+    this.load.audio('jump3', 'sounds/jump3.wav');
+    this.sound.add('jump3');
+    this.load.audio('jump4', 'sounds/jump4.wav');
+    this.sound.add('jump4');
+    this.load.audio('jump5', 'sounds/jump5.wav');
+    this.sound.add('jump5');
+    this.load.audio('jump6', 'sounds/jump6.wav');
+    this.sound.add('jump6');
+    this.load.audio('crouch', 'sounds/crouch.wav');
+    this.sound.add('crouch');
+    this.load.audio('landCrouch', 'sounds/landCrouch.wav');
+    this.sound.add('landCrouch');
 }
 
 function create ()
@@ -128,7 +146,6 @@ function create ()
     this.groundLayer.setSize(800, 20);
     this.groundLayer.body.immovable = true;
     groundLayer2 = this.add.tileSprite(400,590,800,35, 'ground')
-
 
     player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'playerS2');
     player.depth = 100;
@@ -170,10 +187,13 @@ function create ()
     player.isInvulnerable = false; 
     this.physics.add.collider(player, this.groundLayer);
 
-    this.jump = function () {  
+
+
+    this.jump = function () { 
+        jumpCounter += 1
         if (player.body.touching.down) {
             player.jumps = 0;
-            
+            jumpCounter = 1
         }
         if (!player.body.touching.down && hasCrouched && canDouble/*&& !hasDoubled*/){
             player.jumps -= gameOptions.doubleJumpsMax;
@@ -183,6 +203,27 @@ function create ()
         if (player.jumps < gameOptions.jumpNumber && !(crouchCounter > gameOptions.crouchJumpTime)) {
             player.jumps++;
             player.setVelocityY(-gameOptions.jumpVelocity);
+            switch(jumpCounter){
+                case 1:
+                    this.sound.play('jump1'); 
+                    break;
+                case 2:
+                    this.sound.play('jump2');
+                    break; 
+                case 3:
+                    this.sound.play('jump3');
+                    break;
+                case 4:
+                    this.sound.play('jump4');
+                    break;
+                case 5:
+                    this.sound.play('jump5');
+                    break;
+                default:
+                    console.log("ERROR SOUND")
+                    break;
+                
+            }
             player.play('playerJump'); 
         }
         if (player.jumps < -gameOptions.doubleJumpsMax){
@@ -190,8 +231,12 @@ function create ()
         }
         if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.crouchJumpTime && player.body.touching.down){
             player.setVelocityY(-gameOptions.jumpVelocity*1.2);
+            this.sound.play('jump1');
+            jumpCounter -= 1
         }
-        hasCrouched = false;
+        console.log(player.jumps)
+        console.log(hasCrouched)
+        
     }
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -213,7 +258,6 @@ function create ()
     this.addCactus = function(posX,posY,ratio,bounce,type) {
         let catT;
         let cactus;
-        console.log(type)
         switch(type){
             case 0:
                 catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
@@ -380,6 +424,11 @@ var isSit = false;
 var sitTimeout;
 var spawnTimeout;
 var waveType;
+var canSoundCrouch;
+
+//////////////
+/// UPDATE
+//////////////
 
 function update () {
     if(config.debug){
@@ -411,8 +460,13 @@ function update () {
     }
 
     if (keys.DOWN.isDown || keys.S.isDown) {
+        if(canSoundCrouch){ 
+            this.sound.play('crouch');
+            canSoundCrouch = false;
+        }
         if (!player.body.touching.down) {
             player.setTexture('playerSit'); 
+
             isSit = true;
             window.clearTimeout(sitTimeout);
             sitTimeout = setTimeout(function() {
@@ -423,6 +477,9 @@ function update () {
             if (!isSit) {
                 player.setTexture('playerCrouch'); 
             }
+            else{
+                this.sound.play('landCrouch')
+            }
         }
         //player.setTexture();
         player.body.setGravityY(10000);
@@ -430,6 +487,7 @@ function update () {
     }
     else {
         player.body.setGravityY(config.physics.arcade.gravity.y);
+        canSoundCrouch = true;
     }
     if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.crouchJumpTime){
         this.jump();
@@ -463,6 +521,7 @@ function update () {
     }
     else{
         crouchCounter = 0;
+        
     }
     //dynamite spawn
     
@@ -526,7 +585,6 @@ function update () {
 
     gameOptions.spawnDelay -= 0.1
 
-    console.log(gameOptions.spawnDelay);
     if (!canSpawn && !spawnTimeout){
         spawnTimeout = setTimeout(function() {
             canSpawn = true;
@@ -537,7 +595,6 @@ function update () {
     if(canSpawn){
         canSpawn = false;
         var type = getRandomRnd(0, 3);
-        console.log("typeupdate", type);
         switch(type){
                 case 0:
                     this.addCactus(config.width , 550/*getRandom(600, 600)*/, 1, 0.1, 0);
