@@ -28,7 +28,9 @@ var gameOptions = {
     dynaLimit: 10000,
     dynaSpawnTime: 80, //time in frames
     doubleJumpsMax: 2,
-    invu: 1600
+    invu: 1600,
+    crouchJumpTime: 20,
+    pteroOffset: 100
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
@@ -46,13 +48,22 @@ var canDyna = true
 var canPtero = true
 var score
 var canDouble = false;
-var canSpawn = false
+var canSpawn = true
+
 
 var game = new Phaser.Game(config);
 
-function getRndInteger(min, max) {
+function getRandom(min, max) {
     return Math.random() * (max - min) + min;
 }
+
+function getRandomRnd(min, max) {
+    return Math.floor(Math.random() * (max - min) ) + min;
+  }
+
+function getRandomPlayerY(radius) {
+    return Math.floor(Math.random() * (max - min) ) + min;
+  }
 
 function preload ()
 {
@@ -90,6 +101,8 @@ function preload ()
     this.load.image('cactusS2', 'sprites/cactusS2.png');
     this.load.image('cactusB1', 'sprites/cactusB1.png');
     this.load.image('cactusB2', 'sprites/cactusB2.png');
+    this.load.image('cactusW1', 'sprites/cactusWing1.png');
+    this.load.image('cactusW2', 'sprites/cactusWing2.png');
     this.load.image('dynamite', 'sprites/dynamite.png');
     this.load.image('flash', 'sprites/whiteFlash.png');
     this.load.image('cloud', 'sprites/cloud.png');
@@ -164,7 +177,7 @@ function create ()
             canDouble = false;
             //hasDoubled = true;
         }       
-        if (player.jumps < gameOptions.jumpNumber && !(crouchCounter > 25)) {
+        if (player.jumps < gameOptions.jumpNumber && !(crouchCounter > gameOptions.crouchJumpTime)) {
             player.jumps++;
             player.setVelocityY(-gameOptions.jumpVelocity);
             player.play('playerJump'); 
@@ -172,8 +185,8 @@ function create ()
         if (player.jumps < -gameOptions.doubleJumpsMax){
             player.jumps = -gameOptions.doubleJumpsMax;
         }
-        if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25 && player.body.touching.down){
-            player.setVelocityY(-gameOptions.jumpVelocity*0.8);
+        if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.crouchJumpTime && player.body.touching.down){
+            player.setVelocityY(-gameOptions.jumpVelocity*1.2);
         }
         hasCrouched = false;
     }
@@ -194,9 +207,20 @@ function create ()
         scene.jump();
     });
 
-    this.addCactus = function(posX,posY,ratio,bounce) {
-        let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
-        let cactus = this.physics.add.sprite(posX, 0, catT[Math.floor(Math.random() * 4)]);
+    this.addCactus = function(posX,posY,ratio,bounce,type) {
+        let catT;
+        let cactus;
+        console.log(type)
+        switch(type){
+            case 0:
+                catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
+                cactus = this.physics.add.sprite(posX, posY, catT[Math.floor(Math.random() * 4)]);
+                break;
+            case 1:
+                cactus = this.physics.add.sprite(posX, posY, 'cactusW1');
+                break;
+        }    
+        
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
         cactus.setBounce(bounce);
         cactus.scaleX = ratio;
@@ -218,8 +242,8 @@ function create ()
         cactusT.push(cactus);
     }
 
-    this.addPtero = function(posY, ratio) {
-        let ptero = this.physics.add.sprite(800, posY, 'ptero');
+    this.addPtero = function(posX, posY, ratio) {
+        let ptero = this.physics.add.sprite(posX, posY, 'ptero');
         ptero.play('ptero'); 
         ptero.body.setGravityY(-config.physics.arcade.gravity.y);
         ptero.hasTouched = false;
@@ -283,30 +307,10 @@ function create ()
     this.input.on('pointerup', function(pointer){
         switch (pointer.buttons) {
             case 1:
-                if (canCactus) {
-                    let holdTime = (new Date() - clkDownD)
-                    console.log(holdTime);
-                    if (holdTime > 500){
-                        
-                    }
-                    else if (1000 > holdTime){
-                        scene.addCactus((Math.random() * 200) + 600, 1, getRndInteger(0.5,0.9));
-                    }
-                    canCactus = false;
-                    setTimeout(function() {
-                        canCactus = true;
-                    }, gameOptions.cactusLimit)
-                } 
+                
             break;
             case 2: 
-                if (canPtero) {
-                    let holdTime = (new Date() - clkDR)
-                    scene.addPtero(pointer.worldY, holdTime / 240);
-                    canPtero = false;
-                    setTimeout(function() {
-                        canPtero = true;
-                    }, gameOptions.pteroLimit)
-                } 
+                
             break
         }
     })
@@ -319,8 +323,13 @@ function create ()
 
 var isSit = false;
 var sitTimeout;
+var spawnTimeout;
 
 function update () {
+    if(config.debug){
+        gameOptions.life = 999999;
+    }
+
     let scene = this;
     //PLAYER
     player.x = gameOptions.playerStartPosition;
@@ -366,7 +375,7 @@ function update () {
     else {
         player.body.setGravityY(config.physics.arcade.gravity.y);
     }
-    if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > 25){
+    if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.crouchJumpTime){
         this.jump();
         if (player.body.touching.down && crouchCounter > gameOptions.dynaSpawnTime && (!dyna || !dyna.body) && canDyna) {
             this.addDyna(player.x, player.y-50);
@@ -457,9 +466,47 @@ function update () {
     /*
     CACTUS SPAWNING
     */
-    
+   
+    console.log(canSpawn);
     if (!canSpawn){
+        spawnTimeout = setTimeout(function() {
+            canSpawn = true
+            
+        }, 500)  
+    };
 
-    }
-    scene.addCactus((Math.random() * 200) + 600, 3, 0.1);
+    if(canSpawn){
+        canSpawn = false
+        var type = getRandomRnd(0, 3);
+        console.log("typeupdte", type)
+        switch(type){
+                case 0:
+                    this.addCactus(config.width , getRandom(0, 700), 1, 0.1, 0);
+                    break;
+                case 1:
+                    this.addCactus(config.width , getRandom(0, 700), 1, 1, 1);
+                    break;
+                case 2:
+                    console.log("PTEROOOOOO")
+                    let randomSeed = gameOptions.pteroOffset;
+                    let randomOne;
+                    let randomTwo;
+                    if (player.y - randomSeed < 0){
+                        randomOne = 0
+                    }
+                    else{
+                        randomOne = player.y - randomSeed
+                    }
+                    if (player.y + randomSeed > config.height){
+                        randomTwo = config.height
+                    }
+                    else{
+                        randomTwo = player.y + randomSeed
+                    }
+                    this.addPtero(screen.width, getRandom(randomOne, randomTwo), 1);
+                    break;
+                default:
+                    console.log("ERROR SPAWN ENEMY");
+            }        
+    }  
 } 
