@@ -32,6 +32,7 @@ var gameOptions = {
     crouchJumpTime: 20,
     pteroOffset: 100,
     spawnDelay : 1000,
+    spawnDelayDefault : 1000,
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
@@ -127,6 +128,12 @@ function preload ()
     this.sound.add('crouch');
     this.load.audio('landCrouch', 'sounds/landCrouch.wav');
     this.sound.add('landCrouch');
+    this.load.audio('boom', 'sounds/explosion.wav');
+    this.sound.add('boom');
+    this.load.audio('damage', 'sounds/damage.wav');
+    this.sound.add('damage');
+    this.load.audio('cactBreak', 'sounds/cactusBreak.wav');
+    this.sound.add('cactBreak');
 }
 
 function create ()
@@ -280,8 +287,10 @@ function create ()
         cactus.type = type
         cactus.setInteractive();
         cactus.on('pointerdown', function(){
+            scene.sound.play('cactBreak');
             if(cactus.type === 0){
                 cactus.destroy();
+                
             }
             else{
                 cactus.type = 0;
@@ -377,6 +386,7 @@ function create ()
     this.hitDino = function () {
         if (!player.isHit) {
             player.play('playerHitA')
+            this.sound.play('damage');
             life -= 1;
             player.isHit = true; 
             setTimeout(function() {
@@ -425,6 +435,7 @@ var sitTimeout;
 var spawnTimeout;
 var waveType;
 var canSoundCrouch;
+var canLandCrouchSnd
 
 //////////////
 /// UPDATE
@@ -475,10 +486,14 @@ function update () {
         }
         else {
             if (!isSit) {
-                player.setTexture('playerCrouch'); 
+                player.setTexture('playerCrouch');
+                
             }
             else{
-                this.sound.play('landCrouch')
+                if (canLandCrouchSnd){
+                    this.sound.play('landCrouch');
+                    canLandCrouchSnd = false
+                }
             }
         }
         //player.setTexture();
@@ -496,14 +511,17 @@ function update () {
         }
     }
     if (crouchCounter > gameOptions.dynaSpawnTime){
-        player.setTexture('playerSitGift')
+        player.setTexture('playerSitGift');
     }
 
     if (life == 0) {
         setTimeout(function() {
             scene.scene.restart();
+            this.sound.play('damage');
+            gameOptions.spawnDelay = gameOptions.spawnDelayDefault;
         }, 1200)
-        this.scene.pause()
+        this.scene.pause();
+        player.setAlpha(1);
     }
 
     if (player.body.touching.down){
@@ -523,6 +541,13 @@ function update () {
         crouchCounter = 0;
         
     }
+    if (isSit && canLandCrouchSnd && player.body.touching.down){
+            this.sound.play('landCrouch');
+            canLandCrouchSnd = false
+    }
+    if (!isSit) {
+        canLandCrouchSnd = true 
+    }
     //dynamite spawn
     
     if (dyna) {
@@ -530,6 +555,7 @@ function update () {
         if (dyna.body && dyna.body.touching.down) { 
             dyna.destroy();
             flash.setAlpha(1);
+            this.sound.play('boom');
             for (c in cactusT) {
                 cactusT[c].isDyna = true;
             }
