@@ -210,7 +210,7 @@ function create ()
     this.anims.create({
         key: "cactusW1",
         frames: this.anims.generateFrameNumbers("cactusW1"),
-        frameRate: 100,
+        frameRate: 1000,
         repeat: -1
     });
     player.play('playerJump'); 
