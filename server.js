@@ -40,6 +40,9 @@ switch (randomNum){
     case 7:
         console.log("Le singulier de spaghetti est spaghetto !");
 
+        case 7:
+            console.log("#CaveUpdate !");
+
     case theMax:
     console.log("Une array commence toujours par 0!");
             break;        

@@ -29,16 +29,18 @@ var gameOptions = {
     dynaSpawnTime: 80, //time in frames
     doubleJumpsMax: 2,
     invu: 1600,
-    crouchJumpTime: 20,
+    crouchJumpTime: 20, 
     pteroOffset: 100,
     spawnDelay : 1000,
     spawnDelayDefault : 1000,
+    cloudDensity : 20,
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
 var platforms, cursors, player, map, groundLayer, obstacleGroup, groundLayer2, playerShadow;
 var cactusT = [];
 var pteroT = [];
+var cloudT = [];
 var lifeT = [];
 var canCactus = true;
 var dyna;
@@ -132,12 +134,17 @@ function preload ()
     this.sound.add('boom');
     this.load.audio('damage', 'sounds/damage.wav');
     this.sound.add('damage');
-    this.load.audio('cactBreak', 'sounds/cactusBreak.wav');
-    this.sound.add('cactBreak');
+    this.load.audio('break', 'sounds/cactusBreak.wav');
+    this.sound.add('break');
 }
+
+
+var camera;
 
 function create ()
 {
+    this.add.text(0, 0, 'Hello World', { fontFamily: '"Roboto Condensed"' });
+
     cactusT = [];
     pteroT = [];
     canCactus = true;
@@ -160,6 +167,8 @@ function create ()
     playerShadow.depth = 1;
     playerShadow.alpha = 0.2;
     playerShadow.blendMode = 'MULTIPLY'; 
+
+    
 
     this.anims.create({
         key: "playerWalk",
@@ -241,9 +250,6 @@ function create ()
             this.sound.play('jump1');
             jumpCounter -= 1
         }
-        console.log(player.jumps)
-        console.log(hasCrouched)
-        
     }
 
     keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -287,7 +293,7 @@ function create ()
         cactus.type = type
         cactus.setInteractive();
         cactus.on('pointerdown', function(){
-            scene.sound.play('cactBreak');
+            scene.sound.play('break');
             if(cactus.type === 0){
                 cactus.destroy();
                 
@@ -331,14 +337,25 @@ function create ()
         pteroT.push(ptero);
         ptero.setInteractive();
         ptero.on('pointerdown', function(){
-                ptero.destroy();
+            scene.sound.play('break');
+            ptero.destroy();
         })
         ptero.on('pointerover', function(pointer, localX, localY, event){ 
             ptero.setAlpha(0.4);
-         });
+        });
         ptero.on('pointerout', function(pointer, localX, localY, event){ 
             ptero.setAlpha(1);
-         });
+        });
+    }
+
+    this.addCloud = function(posX, posY, ratio) {
+        let cloud = this.physics.add.sprite(posX, posY, 'cloud')
+        cloud.speed = ratio * 2;
+        cloud.setScale(ratio, ratio);
+        cloud.body.setGravityY(-config.physics.arcade.gravity.y);
+        cloudT.push(cloud);
+        //this.physics.add.overlap(player, cloud, function(cldPlayer, cldPtero) {
+        //}, null, this);
     }
 
     /*this.addLife = function(posX, posY, ratio) {
@@ -430,12 +447,30 @@ function create ()
     console.log(player);
 }
 
+    //  
+    //  ***           ***
+    //  ***           ***
+    //  ***           ***
+    //  ***           ***
+    //  ***           ***
+    //  ***           ***
+    //  ***           ***
+    //  ***           ***
+    //  ***           ***
+    //   ***         ***
+    //     ************
+    //  
+
 var isSit = false;
 var sitTimeout;
 var spawnTimeout;
 var waveType;
 var canSoundCrouch;
-var canLandCrouchSnd
+var canLandCrouchSnd;
+var cameraShake = 0;
+var cameraShakePositive = 0;
+var cameraShakeDirection = true;
+var cloudDensSeed = 0;
 
 //////////////
 /// UPDATE
@@ -452,7 +487,6 @@ function update () {
     if (groundLayer2) { 
         groundLayer2.tilePositionX += 4
     }
-
     
     playerShadow.alpha = (player.y / config.height) * 0.3;
     playerShadow.scaleX = ((player.y / config.height) * 0.5) + 0.7;
@@ -517,7 +551,6 @@ function update () {
     if (life == 0) {
         setTimeout(function() {
             scene.scene.restart();
-            this.sound.play('damage');
             gameOptions.spawnDelay = gameOptions.spawnDelayDefault;
         }, 1200)
         this.scene.pause();
@@ -548,6 +581,24 @@ function update () {
     if (!isSit) {
         canLandCrouchSnd = true 
     }
+    
+    /*
+    if(cameraShakePositive > 0){
+        cameraShakePositive -= 1;
+    }
+    else{
+        cameraShakeDirection = 0;
+    }
+    cameraShakeDirection = !cameraShakeDirection;
+    if (cameraShakeDirection){
+        cameraShake = 0 - cameraShakePositive;
+    }
+    else{
+        cameraShake = cameraShakePositive;
+    }
+    camera.setPosition(cameraShake, camera.y);
+    */
+
     //dynamite spawn
     
     if (dyna) {
@@ -556,6 +607,7 @@ function update () {
             dyna.destroy();
             flash.setAlpha(1);
             this.sound.play('boom');
+            cameraShakePositive = 50;
             for (c in cactusT) {
                 cactusT[c].isDyna = true;
             }
@@ -604,6 +656,17 @@ function update () {
         }
     }
 
+    for (c in cloudT) {
+        let clou = cloudT[c];{
+            clou.x -= clou.speed;
+        }
+    }
+
+    cloudDensSeed = getRandomRnd(1, gameOptions.cloudDensity);
+    console.log(cloudDensSeed);
+    if(cloudDensSeed === 1){
+        this.addCloud(config.width, getRandom(0, config.height - 100), getRandom(0.5, 2));
+    }
     /*
     CACTUS SPAWNING
     */
