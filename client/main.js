@@ -6,7 +6,7 @@ var config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 800 },
-            debug: false,
+            debug: false ,
         }
     },
     pixelArt: true,
@@ -33,7 +33,7 @@ var gameOptions = {
     pteroOffset: 100,
     spawnDelay : 1000,
     spawnDelayDefault : 1000,
-    cloudDensity : 20,
+    cloudDensity : 25,
 }
 
 document.addEventListener('contextmenu', e => e.preventDefault());
@@ -70,7 +70,7 @@ function getRandomRnd(min, max) {
 function preload ()
 {
     audio: {
-        disableWebAudio: true
+        disableWebAudio: false
     }
 
     this.load.spritesheet("playerWalk", "sprites/dinoWalk.png",{
@@ -101,18 +101,25 @@ function preload ()
         frameWidth: 46,
         frameHeight: 41
     });
-    this.load.image('ground', 'sprites/tileGround.png');
+    this.load.spritesheet('cloud2', "sprites/cloud2.png",{
+        frameWidth: 23,
+        frameHeight: 20,
+    });
+    this.load.spritesheet('cactusW1', "sprites/cactusWing1.png",{
+        frameWidth: 33,
+        frameHeight: 35,
+    });
+    this.load.image('ground', 'sprites/ground.png');
     this.load.image('playerSitGift', 'sprites/dinoSitGift.png');
     this.load.image('cactusS1', 'sprites/cactusS1.png');
     this.load.image('cactusS2', 'sprites/cactusS2.png');
     this.load.image('cactusB1', 'sprites/cactusB1.png');
     this.load.image('cactusB2', 'sprites/cactusB2.png');
-    this.load.image('cactusW1', 'sprites/cactusWing1.png');
-    this.load.image('cactusW2', 'sprites/cactusWing2.png');
     this.load.image('dynamite', 'sprites/dynamite.png');
     this.load.image('flash', 'sprites/whiteFlash.png');
-    this.load.image('cloud', 'sprites/cloud.png');
+    this.load.image('cloud1', 'sprites/cloud1.png');
     this.load.image('life', 'sprites/life.png');
+    this.load.image('blank', 'sprites/blank.png');
 
     this.load.audio('jump1', 'sounds/jump1.wav');
     this.sound.add('jump1');
@@ -156,11 +163,11 @@ function create ()
     canDouble = false;
     score = 0;
     scene = this;
-    this.groundLayer = this.physics.add.staticSprite(10, 590, 'ground');
-    this.groundLayer.setSize(800, 20);
+    this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
+    this.groundLayer.setSize(800, 10);
     this.groundLayer.body.immovable = true;
-    groundLayer2 = this.add.tileSprite(400,590,800,35, 'ground')
-
+    groundLayer2 = this.add.tileSprite(400,572,1200,25,'ground');
+    
     player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'playerS2');
     player.depth = 100;
     playerShadow = this.add.sprite((gameOptions.playerStartPosition - 5), 580, 'playerShadow');
@@ -191,6 +198,19 @@ function create ()
         key: "ptero",
         frames: this.anims.generateFrameNumbers("ptero"),
         frameRate: 10,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "cloud2",
+        frames: this.anims.generateFrameNumbers("cloud2"),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: "cactusW1",
+        frames: this.anims.generateFrameNumbers("cactusW1"),
+        frameRate: 100,
         repeat: -1
     });
     player.play('playerJump'); 
@@ -278,6 +298,7 @@ function create ()
                 break;
             case 1:
                 cactus = this.physics.add.sprite(posX, posY, 'cactusW1');
+                cactus.play('cactusW1');
                 break;
         }    
         cactus.body.setGravityY(config.physics.arcade.gravity.y);
@@ -295,16 +316,14 @@ function create ()
         cactus.on('pointerdown', function(){
             scene.sound.play('break');
             if(cactus.type === 0){
-                cactus.destroy();
-                
+                cactus.destroy(); 
             }
             else{
                 cactus.type = 0;
                 cactus.body.setGravityY(10000)
                 cactus.setTexture('cactusS1');
                 cactus.setBounce(0.1);
-                cactus.body.width = cactus.body.width / 2;
-                
+                cactus.body.width /= 2;
             }
         })
         cactus.on('pointerover', function(pointer, localX, localY, event){ 
@@ -320,6 +339,13 @@ function create ()
             }
         }, null, this);
         cactusT.push(cactus);
+        /*switch(type){
+            case 0:
+                break;
+            case 1:
+                    cactus.body.width /= 2;
+                break;
+        }*/
     }
 
     this.addPtero = function(posX, posY, ratio) {
@@ -349,7 +375,16 @@ function create ()
     }
 
     this.addCloud = function(posX, posY, ratio) {
-        let cloud = this.physics.add.sprite(posX, posY, 'cloud')
+        let type = getRandomRnd(1,11);
+        let cloud
+        if(type !== 1){
+            cloud = this.physics.add.sprite(posX, posY, 'cloud1'); 
+        }
+        else{
+            cloud = this.physics.add.sprite(posX, posY, 'cloud2'); 
+            cloud.play('cloud2');
+        }
+        cloud.setDepth(-1000);
         cloud.speed = ratio * 2;
         cloud.setScale(ratio, ratio);
         cloud.body.setGravityY(-config.physics.arcade.gravity.y);
@@ -662,8 +697,7 @@ function update () {
         }
     }
 
-    cloudDensSeed = getRandomRnd(1, gameOptions.cloudDensity);
-    console.log(cloudDensSeed);
+    cloudDensSeed = getRandomRnd(1, gameOptions.cloudDensity + 1);
     if(cloudDensSeed === 1){
         this.addCloud(config.width, getRandom(0, config.height - 100), getRandom(0.5, 2));
     }
