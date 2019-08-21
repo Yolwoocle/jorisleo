@@ -11,39 +11,39 @@ export default class GameScene extends Phaser.Scene {
         super({
             key: 'GameScene'
         });
+
+        this.gameOptions = {
+            jumpVelocity: 700,
+            platformSpeed: 200,
+            playerStartPosition: 100,
+            jumpNumber: 2,
+            cactusLimit: 800,
+            pteroLimit: 500,
+            dynaLimit: 10000,
+            dynaSpawnTime: 80, //time in frames
+            doubleJumpsMax: 2,
+            invu: 1600,
+            crouchJumpTime: 20,
+            pteroOffset: 100,
+            spawnDelay: 750,
+            spawnDelayDefault: 750,
+            cloudDensity: 25,
+        };
+    
+    
+    
+        this.camera;
+        this.isSit = false;
+        this.sitTimeout;
+        this.spawnTimeout;
+        this.waveType;
+        this.canSoundCrouch;
+        this.canLandCrouchSnd;
+        this.cameraShake = 0;
+        this.cameraShakePositive = 0;
+        this.cameraShakeDirection = true;
+        this.cloudDensSeed = 0;
     }
-
-    gameOptions = {
-        jumpVelocity: 700,
-        platformSpeed: 200,
-        playerStartPosition: 100,
-        jumpNumber: 2,
-        cactusLimit: 800,
-        pteroLimit: 500,
-        dynaLimit: 10000,
-        dynaSpawnTime: 80, //time in frames
-        doubleJumpsMax: 2,
-        invu: 1600,
-        crouchJumpTime: 20,
-        pteroOffset: 100,
-        spawnDelay: 750,
-        spawnDelayDefault: 750,
-        cloudDensity: 25,
-    };
-
-
-
-camera;
-isSit = false;
-sitTimeout;
-spawnTimeout;
-waveType;
-canSoundCrouch;
-canLandCrouchSnd;
-cameraShake = 0;
-cameraShakePositive = 0;
-cameraShakeDirection = true;
-cloudDensSeed = 0;
 
 preload()
 {
@@ -56,6 +56,14 @@ create()
 {
     this.add.text(0, 0, 'Hello World', { fontFamily: '"Roboto Condensed"' });
 
+    platforms;
+    cursors;
+    player;
+    map;
+    groundLayer;
+    obstacleGroup;
+    groundLayer2;
+    playerShadow;
     cactusT = [];
     pteroT = [];
     canCactus = true;
@@ -65,6 +73,8 @@ create()
     canDyna = true
     canPtero = true
     canDouble = false;
+    canSpawn = true
+    jumpCounter;
     score = 0;
     scene = this;
     this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
@@ -78,9 +88,6 @@ create()
     playerShadow.depth = 1;
     playerShadow.alpha = 0.2;
     playerShadow.blendMode = 'MULTIPLY';
-
-
-
 
     player.play('playerJump');
     player.setSize(46, 49, true);

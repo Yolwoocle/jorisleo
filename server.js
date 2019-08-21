@@ -2,10 +2,10 @@ const express = require('express');
 const app = express(); 
 var randomNum
 
-app.use(express.static('client')); 
+app.use(express.static('dist')); 
 
 app.get('/',function(req,res){
-    res.sendFile(__dirname + '/client/main.js');  
+    res.sendFile(__dirname + '/dist/main.js');  
 })
 
 var theMax = 9;
