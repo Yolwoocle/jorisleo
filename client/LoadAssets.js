@@ -129,7 +129,7 @@ export default class LoadAssets extends Phaser.Scene {
             repeat: -1
         }); 
 
-        console.log("loadassets")
+        console.log("loadassets");
     }
 
 }
