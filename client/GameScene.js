@@ -47,6 +47,17 @@ export default class GameScene extends Phaser.Scene {
 
 preload()
 {
+    this.sound.add('jump1');
+    this.sound.add('jump2');
+    this.sound.add('jump3');
+    this.sound.add('jump4');
+    this.sound.add('jump5');
+    this.sound.add('jump6');
+    this.sound.add('crouch');
+    this.sound.add('landCrouch');
+    this.sound.add('boom');
+    this.sound.add('damage');
+    this.sound.add('break');
     audio: {
         disableWebAudio: false
     }

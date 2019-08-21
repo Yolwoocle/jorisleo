@@ -69,27 +69,16 @@ this.load.image('blank', 'sprites/blank.png');
 
 
 this.load.audio('jump1', 'sounds/jump1.wav');
-this.sound.add('jump1');
 this.load.audio('jump2', 'sounds/jump2.wav');
-this.sound.add('jump2');
 this.load.audio('jump3', 'sounds/jump3.wav');
-this.sound.add('jump3');
 this.load.audio('jump4', 'sounds/jump4.wav');
-this.sound.add('jump4');
 this.load.audio('jump5', 'sounds/jump5.wav');
-this.sound.add('jump5');
 this.load.audio('jump6', 'sounds/jump6.wav');
-this.sound.add('jump6');
 this.load.audio('crouch', 'sounds/crouch.wav');
-this.sound.add('crouch');
 this.load.audio('landCrouch', 'sounds/landCrouch.wav');
-this.sound.add('landCrouch');
 this.load.audio('boom', 'sounds/explosion.wav');
-this.sound.add('boom');
 this.load.audio('damage', 'sounds/damage.wav');
-this.sound.add('damage');
 this.load.audio('break', 'sounds/cactusBreak.wav');
-this.sound.add('break');
 
 
 
