@@ -1,3 +1,6 @@
+import LoadAssets from "./LoadAssets";
+import Config from "./Config";
+
 function getRandom(min, max) {
     return Math.random() * (max - min) + min;
 }
@@ -5,32 +8,12 @@ function getRandom(min, max) {
 function getRandomRnd(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 } 
-
+ 
 export default class GameScene extends Phaser.Scene {
     constructor(test) {
         super({
             key: 'GameScene'
         });
-
-        this.gameOptions = {
-            jumpVelocity: 700,
-            platformSpeed: 200,
-            playerStartPosition: 100,
-            jumpNumber: 2,
-            cactusLimit: 800,
-            pteroLimit: 500,
-            dynaLimit: 10000,
-            dynaSpawnTime: 80, //time in frames
-            doubleJumpsMax: 2,
-            invu: 1600,
-            crouchJumpTime: 20,
-            pteroOffset: 100,
-            spawnDelay: 750,
-            spawnDelayDefault: 750,
-            cloudDensity: 25,
-        };
-    
-    
     
         this.camera;
         this.isSit = false;
@@ -67,27 +50,27 @@ create()
 {
     this.add.text(0, 0, 'Hello World', { fontFamily: '"Roboto Condensed"' });
 
-    platforms;
-    cursors;
-    player;
-    map;
-    groundLayer;
-    obstacleGroup;
-    groundLayer2;
-    playerShadow;
-    cactusT = [];
-    pteroT = [];
-    canCactus = true;
-    life = 3
-    hasCrouched = false;
-    crouchCounter
-    canDyna = true
-    canPtero = true
-    canDouble = false;
-    canSpawn = true
-    jumpCounter;
-    score = 0;
-    scene = this;
+    var platforms;
+    var cursors;
+    var player;
+    var map;
+    var groundLayer;
+    var obstacleGroup;
+    var groundLayer2;
+    var playerShadow;
+    var cactusT = [];
+    var pteroT = [];
+    var canCactus = true;
+    var life = 3
+    var hasCrouched = false;
+    var crouchCounter
+    var canDyna = true
+    var canPtero = true
+    var canDouble = false;
+    var canSpawn = true
+    var jumpCounter;
+    var score = 0;
+    var scene = this;
     this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
     this.groundLayer.setSize(800, 10);
     this.groundLayer.body.immovable = true;
