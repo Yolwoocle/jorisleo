@@ -119,7 +119,7 @@ create()
     let scene = this;
     this.config = new Config();
     this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
-    this.groundLayer.setSize(800, 10);
+    this.groundLayer.setSize(1600, 10);
     this.groundLayer.body.immovable = true;
     this.groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
 
@@ -450,8 +450,8 @@ update()
             this.player.setTexture('playerSit');
 
             this.isSit = true;
-            window.clearTimeout(sitTimeout);
-            sitTimeout = setTimeout(function () {
+            window.clearTimeout(this.sitTimeout);
+            this.sitTimeout = setTimeout(function () {
                 this.isSit = false;
             }, 200)
         }
@@ -594,17 +594,17 @@ update()
         }
     }
 
-    for (c in this.cloudT) {
+    for (let c in this.cloudT) {
         let clou = this.cloudT[c]; {
             clou.x -= clou.speed;
         }
     }
-    /*
+    
     this.cloudDensSeed = getRandomRnd(1, this.config.gameOptions.cloudDensity + 1);
     if (this.cloudDensSeed === 1) {
         this.addCloud(this.config.gameConfig.width, getRandom(0, this.config.gameConfig.height - 100), getRandom(0.5, 2));
     }
-    */
+    
 
 
     /*
