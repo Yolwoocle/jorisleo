@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --inspect server.js"
+    "start": "nodemon --inspect server.js",
+    "dev": "webpack"
   },
   "repository": {
     "type": "git",
@@ -18,9 +19,16 @@
   },
   "homepage": "https://github.com/Yolwoocle/jorisleo#readme",
   "dependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-loader": "^8.0.6",
     "express": "^4.17.1",
     "nodemon": "^1.19.1",
     "phaser": "^3.19.0",
-    "webpack": "^4.39.2"
+    "webpack": "^4.39.2",
+    "webpack-dev-server": "^3.8.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.3.7"
   }
 }
