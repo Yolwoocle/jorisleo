@@ -1,11 +1,27 @@
-export default class Config extends Phaser.Scene{
+export default class Config {
 
     constructor() {
-        super({
-            key: 'Config'
-        });
     } 
-    
+
+
+    gameConfig = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 800 },
+                debug: true,
+            }
+        },
+        pixelArt: true,
+        scene: [
+            LoadAssets,
+            GameScene
+        ],
+        backgroundColor: "#f7f7f7"
+    };
  
     gameOptions = {
         jumpVelocity: 700,
@@ -25,22 +41,5 @@ export default class Config extends Phaser.Scene{
         cloudDensity : 25,
     }
 
-    config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 800 },
-                debug: true,
-            }
-        },
-        pixelArt: true,
-        scene: [
-            LoadAssets,
-            GameScene
-        ],
-        backgroundColor: "#f7f7f7"
-    };
+    
 }

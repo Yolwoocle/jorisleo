@@ -1,6 +1,7 @@
 import LoadAssets from "./LoadAssets";
 import Config from "./Config";
 
+
 function getRandom(min, max) {
     return Math.random() * (max - min) + min;
 }
@@ -10,10 +11,10 @@ function getRandomRnd(min, max) {
 } 
  
 export default class GameScene extends Phaser.Scene {
-    constructor(test) {
-        super({
+    constructor() {
+        /*super({
             key: 'GameScene'
-        });
+        });*/
     
         this.camera;
         this.isSit = false;
@@ -30,6 +31,7 @@ export default class GameScene extends Phaser.Scene {
 
 preload()
 {
+    console.log("preload")
     this.sound.add('jump1');
     this.sound.add('jump2');
     this.sound.add('jump3');
@@ -48,6 +50,7 @@ preload()
 
 create()
 {
+    console.log("create")
     this.add.text(0, 0, 'Hello World', { fontFamily: '"Roboto Condensed"' });
 
     var platforms;
@@ -86,7 +89,7 @@ create()
     player.play('playerJump');
     player.setSize(46, 49, true);
     player.setCollideWorldBounds(true);
-    player.body.setGravityY(config.physics.arcade.gravity.y);
+    player.body.setGravityY(Config.gameConfig.physics.arcade.gravity.y);
     player.jumps = 0;
     player.isHit = false;
     player.isInvulnerable = false;
@@ -182,7 +185,7 @@ create()
                 cactus = this.physics.add.sprite(posX, posY, 'stego');
                 cactus.play('stego');
         }
-        cactus.body.setGravityY(config.physics.arcade.gravity.y);
+        cactus.body.setGravityY(Config.gameConfig.physics.arcade.gravity.y);
         cactus.setBounce(bounce);
         cactus.scaleX = ratio;
         cactus.scaleY = ratio;
@@ -233,7 +236,7 @@ create()
     this.addPtero = function (posX, posY, ratio) {
         let ptero = this.physics.add.sprite(posX, posY, 'ptero');
         ptero.play('ptero');
-        ptero.body.setGravityY(-config.physics.arcade.gravity.y);
+        ptero.body.setGravityY(-Config.gameConfig.physics.arcade.gravity.y);
         ptero.hasTouched = false;
         ptero.speed = ratio + 6;
         this.physics.add.overlap(player, ptero, function (cldPlayer, cldPtero) {
@@ -269,7 +272,7 @@ create()
         cloud.setDepth(-1000);
         cloud.speed = ratio * 2;
         cloud.setScale(ratio, ratio);
-        cloud.body.setGravityY(-config.physics.arcade.gravity.y);
+        cloud.body.setGravityY(-Config.gameConfig.physics.arcade.gravity.y);
         cloudT.push(cloud);
         //this.physics.add.overlap(player, cloud, function(cldPlayer, cldPtero) {
         //}, null, this);
@@ -278,7 +281,7 @@ create()
     /*this.addLife = function(posX, posY, ratio) {
         let life = this.physics.add.sprite(posX, posY, 'life');
         life.play('life'); 
-        life.body.setGravityY(-config.physics.arcade.gravity.y);
+        life.body.setGravityY(-Config.gameConfig.physics.arcade.gravity.y);
         life.hasTouched = false;
         life.speed = ratio + 6;
         this.physics.add.overlap(player, life, function(cldPlayer, cldlife) {
@@ -330,7 +333,7 @@ create()
         }
     }
 
-    flash = this.add.sprite(config.width / 2, config.height / 2, 'flash');
+    flash = this.add.sprite(Config.gameConfig.width / 2, Config.gameConfig.height / 2, 'flash');
     flash.setAlpha(0);
 
     pointer = this.input.activePointer;
@@ -366,7 +369,8 @@ create()
 
 update()
 {
-    if (config.debug) {
+    console.log("update")
+    if (Config.gameConfig.debug) {
         gameOptions.life = 999999;
     }
 
@@ -377,8 +381,8 @@ update()
         groundLayer2.tilePositionX += 4
     }
 
-    playerShadow.alpha = (player.y / config.height) * 0.3;
-    playerShadow.scaleX = ((player.y / config.height) * 0.5) + 0.7;
+    playerShadow.alpha = (player.y / Config.gameConfig.height) * 0.3;
+    playerShadow.scaleX = ((player.y / Config.gameConfig.height) * 0.5) + 0.7;
     playerShadow.scaleY = 0.5
 
     if (player.isHit) {
@@ -424,7 +428,7 @@ update()
         hasCrouched = true
     }
     else {
-        player.body.setGravityY(config.physics.arcade.gravity.y);
+        player.body.setGravityY(Config.gameConfig.physics.arcade.gravity.y);
         canSoundCrouch = true;
     }
     if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.crouchJumpTime) {
@@ -554,7 +558,7 @@ update()
 
     cloudDensSeed = getRandomRnd(1, gameOptions.cloudDensity + 1);
     if (cloudDensSeed === 1) {
-        this.addCloud(config.width, getRandom(0, config.height - 100), getRandom(0.5, 2));
+        this.addCloud(Config.gameConfig.width, getRandom(0, Config.gameConfig.height - 100), getRandom(0.5, 2));
     }
 
 
@@ -584,10 +588,10 @@ update()
         type = getRandomRnd(0, 4);
         switch (type) {
             case 0:
-                this.addCactus(config.width, 550/*getRandom(600, 600)*/, 1, 0.1, 0);
+                this.addCactus(Config.gameConfig.width, 550/*getRandom(600, 600)*/, 1, 0.1, 0);
                 break;
             case 1:
-                this.addCactus(config.width, getRandom(0, 700), 2, 1, 1);
+                this.addCactus(Config.gameConfig.width, getRandom(0, 700), 2, 1, 1);
                 break;
             case 2:
                 let randomSeed = gameOptions.pteroOffset;
@@ -599,19 +603,19 @@ update()
                 else {
                     randomOne = player.y - randomSeed
                 }
-                if (player.y + randomSeed > config.height) {
-                    randomTwo = config.height
+                if (player.y + randomSeed > Config.gameConfig.height) {
+                    randomTwo = Config.gameConfig.height
                 }
                 else {
                     randomTwo = player.y + randomSeed
                 }
-                this.addPtero(config.width, getRandom(randomOne, randomTwo), 1);
+                this.addPtero(Config.gameConfig.width, getRandom(randomOne, randomTwo), 1);
                 break;
             case 3:
-                this.addCactus(config.width, 550/*getRandom(600, 600)*/, getRandom(1.5, 2.5), 0.1, 2);
+                this.addCactus(Config.gameConfig.width, 550/*getRandom(600, 600)*/, getRandom(1.5, 2.5), 0.1, 2);
                 break;
             /*case 3:
-                this.addLife(config.width, getRandom(0, config.height), 1);
+                this.addLife(Config.gameConfig.width, getRandom(0, Config.gameConfig.height), 1);
                 break;*/
             default:
                 console.log("ERROR SPAWN ENEMY");

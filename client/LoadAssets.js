@@ -4,7 +4,7 @@ export default class LoadAssets extends Phaser.Scene {
         super({
             key: 'LoadAssets'
         });
-    } 
+    }
 
     preload() {
         this.load.on('complete', () => {
@@ -127,7 +127,9 @@ export default class LoadAssets extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers("stego"),
             frameRate: 2,
             repeat: -1
-        });
+        }); 
+
+        console.log("loadassets")
     }
 
 }
