@@ -1,4 +1,4 @@
-import "phaser"
+import "phaser";
 import LoadAssets from './LoadAssets';
 import GameScene from './GameScene';
 import Config from './Config'
@@ -6,9 +6,11 @@ import Config from './Config'
 
 document.addEventListener('contextmenu', e => e.preventDefault());
 
-const game = new Phaser.Game(Config.gameConfig); // eslint-disable-line no-unused-vars
+let config = new Config();
+let gameConfig = Object.assign({}, config.gameConfig);
+gameConfig.scene = [
+    LoadAssets,
+    GameScene
+];
 
-/*GameScene.preload();
-LoadAssets.preload();
-GameScene.create();
-GameScene.update();*/
+const game = new Phaser.Game(gameConfig);
