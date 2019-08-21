@@ -20,6 +20,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "nodemon": "^1.19.1",
-    "phaser": "^3.19.0"
+    "phaser": "^3.19.0",
+    "webpack": "^4.39.2"
   }
 }
