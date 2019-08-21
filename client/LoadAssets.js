@@ -7,6 +7,7 @@ export default class LoadAssets extends Phaser.Scene {
     }
 
     preload() {
+        console.log('preload');
         this.load.on('complete', () => {
             this.scene.start('GameScene');
         });
@@ -52,7 +53,29 @@ export default class LoadAssets extends Phaser.Scene {
             frameHeight: 19,
         });
 
+        this.load.image('ground', 'sprites/ground.png');
+        this.load.image('playerSitGift', 'sprites/dinoSitGift.png');
+        this.load.image('cactusS1', 'sprites/cactusS1.png');
+        this.load.image('cactusS2', 'sprites/cactusS2.png');
+        this.load.image('cactusB1', 'sprites/cactusB1.png');
+        this.load.image('cactusB2', 'sprites/cactusB2.png');
+        this.load.image('dynamite', 'sprites/dynamite.png');
+        this.load.image('flash', 'sprites/whiteFlash.png');
+        this.load.image('cloud1', 'sprites/cloud1.png');
+        this.load.image('life', 'sprites/life.png');
+        this.load.image('blank', 'sprites/blank.png');
 
+        this.load.audio('jump1', 'sounds/jump1.wav');
+        this.load.audio('jump2', 'sounds/jump2.wav');
+        this.load.audio('jump3', 'sounds/jump3.wav');
+        this.load.audio('jump4', 'sounds/jump4.wav');
+        this.load.audio('jump5', 'sounds/jump5.wav');
+        this.load.audio('jump6', 'sounds/jump6.wav');
+        this.load.audio('crouch', 'sounds/crouch.wav');
+        this.load.audio('landCrouch', 'sounds/landCrouch.wav');
+        this.load.audio('boom', 'sounds/explosion.wav');
+        this.load.audio('damage', 'sounds/damage.wav');
+        this.load.audio('break', 'sounds/cactusBreak.wav');
 
 
 

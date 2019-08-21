@@ -9,28 +9,27 @@ function getRandom(min, max) {
 function getRandomRnd(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 } 
- 
+
 export default class GameScene extends Phaser.Scene {
     constructor() {
-        /*super({
+        super({
             key: 'GameScene'
-        });*/
-    
-        this.camera;
-        this.isSit = false;
-        this.sitTimeout;
-        this.spawnTimeout;
-        this.waveType;
-        this.canSoundCrouch;
-        this.canLandCrouchSnd;
-        this.cameraShake = 0;
-        this.cameraShakePositive = 0;
-        this.cameraShakeDirection = true;
-        this.cloudDensSeed = 0;
+        });
     }
 
 preload()
 {
+    this.camera;
+    this.isSit = false;
+    this.sitTimeout;
+    this.spawnTimeout;
+    this.waveType;
+    this.canSoundCrouch;
+    this.canLandCrouchSnd;
+    this.cameraShake = 0;
+    this.cameraShakePositive = 0;
+    this.cameraShakeDirection = true;
+    this.cloudDensSeed = 0;
     console.log("preload")
     this.sound.add('jump1');
     this.sound.add('jump2');
@@ -74,14 +73,15 @@ create()
     var jumpCounter;
     var score = 0;
     var scene = this;
+    let config = new Config();
     this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
     this.groundLayer.setSize(800, 10);
     this.groundLayer.body.immovable = true;
     groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
 
-    player = this.physics.add.sprite(gameOptions.playerStartPosition, 450, 'playerS2');
+    player = this.physics.add.sprite(config.gameOptions.playerStartPosition, 450, 'playerS2');
     player.depth = 100;
-    playerShadow = this.add.sprite((gameOptions.playerStartPosition - 5), 580, 'playerShadow');
+    playerShadow = this.add.sprite((config.gameOptions.playerStartPosition - 5), 580, 'playerShadow');
     playerShadow.depth = 1;
     playerShadow.alpha = 0.2;
     playerShadow.blendMode = 'MULTIPLY';
@@ -89,7 +89,7 @@ create()
     player.play('playerJump');
     player.setSize(46, 49, true);
     player.setCollideWorldBounds(true);
-    player.body.setGravityY(Config.gameConfig.physics.arcade.gravity.y);
+    player.body.setGravityY(config.gameConfig.physics.arcade.gravity.y);
     player.jumps = 0;
     player.isHit = false;
     player.isInvulnerable = false;
