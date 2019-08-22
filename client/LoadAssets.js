@@ -108,53 +108,7 @@ export default class LoadAssets extends Phaser.Scene {
         this.load.audio('damage', 'sounds/damage.wav');
         this.load.audio('break', 'sounds/cactusBreak.wav');
 
-
-
-
-
-        this.anims.create({
-            key: "playerWalk",
-            frames: this.anims.generateFrameNumbers("playerWalk"),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: "playerJump",
-            frames: this.anims.generateFrameNumbers("playerJump"),
-            frameRate: 10,
-        });
-        this.anims.create({
-            key: "playerHitA",
-            frames: this.anims.generateFrameNumbers("playerHit"),
-            frameRate: 10
-        });
-        this.anims.create({
-            key: "ptero",
-            frames: this.anims.generateFrameNumbers("ptero"),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: "cloud2",
-            frames: this.anims.generateFrameNumbers("cloud2"),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.anims.create({
-            key: "cactusW1",
-            frames: this.anims.generateFrameNumbers("cactusW1"),
-            frameRate: 4,
-            repeat: -1
-        });
-        this.anims.create({
-            key: "stego",
-            frames: this.anims.generateFrameNumbers("stego"),
-            frameRate: 2,
-            repeat: -1
-        }); 
-
         console.log("loadassets");
-        console.log("loadassets")
     }
 
 }
