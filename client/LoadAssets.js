@@ -9,6 +9,7 @@ export default class LoadAssets extends Phaser.Scene {
     preload() {
         console.log('preload');
         this.load.on('complete', () => {
+            console.log('complete');
             this.scene.start('GameScene');
         });
 
@@ -153,6 +154,7 @@ export default class LoadAssets extends Phaser.Scene {
         }); 
 
         console.log("loadassets");
+        console.log("loadassets")
     }
 
 }

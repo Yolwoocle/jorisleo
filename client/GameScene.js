@@ -19,17 +19,6 @@ export default class GameScene extends Phaser.Scene {
 
 preload()
 {
-    this.camera;
-    this.isSit = false;
-    this.sitTimeout;
-    this.spawnTimeout;
-    this.waveType;
-    this.canSoundCrouch;
-    this.canLandCrouchSnd;
-    this.cameraShake = 0;
-    this.cameraShakePositive = 0;
-    this.cameraShakeDirection = true;
-    this.cloudDensSeed = 0;
     console.log("preload")
     this.sound.add('jump1');
     this.sound.add('jump2');
@@ -42,6 +31,49 @@ preload()
     this.sound.add('boom');
     this.sound.add('damage');
     this.sound.add('break');
+
+
+    this.anims.create({
+        key: "playerWalk",
+        frames: this.anims.generateFrameNumbers("playerWalk"),
+        frameRate: 10,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "playerJump",
+        frames: this.anims.generateFrameNumbers("playerJump"),
+        frameRate: 10,
+    });
+    this.anims.create({
+        key: "playerHitA",
+        frames: this.anims.generateFrameNumbers("playerHit"),
+        frameRate: 10
+    });
+    this.anims.create({
+        key: "ptero",
+        frames: this.anims.generateFrameNumbers("ptero"),
+        frameRate: 10,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "cloud2",
+        frames: this.anims.generateFrameNumbers("cloud2"),
+        frameRate: 10,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "cactusW1",
+        frames: this.anims.generateFrameNumbers("cactusW1"),
+        frameRate: 4,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "stego",
+        frames: this.anims.generateFrameNumbers("stego"),
+        frameRate: 2,
+        repeat: -1
+    }); 
+
     audio: {
         disableWebAudio: false
     }
@@ -52,72 +84,84 @@ create()
     console.log("create")
     this.add.text(0, 0, 'Hello World', { fontFamily: '"Roboto Condensed"' });
 
+    this.camera;
+    this.isSit = false;
+    this.sitTimeout;
+    this.spawnTimeout;
+    this.waveType;
+    this.canSoundCrouch;
+    this.canLandCrouchSnd;
+    this.cameraShake = 0;
+    this.cameraShakePositive = 0;
+    this.cameraShakeDirection = true;
+    this.cloudDensSeed = 0;
     var platforms;
     var cursors;
-    var player;
+    this.player;
     var map;
     var groundLayer;
     var obstacleGroup;
-    var groundLayer2;
-    var playerShadow;
-    var cactusT = [];
-    var pteroT = [];
-    var canCactus = true;
-    var life = 3
-    var hasCrouched = false;
-    var crouchCounter
-    var canDyna = true
-    var canPtero = true
-    var canDouble = false;
-    var canSpawn = true
-    var jumpCounter;
-    var score = 0;
-    var scene = this;
-    let config = new Config();
+    this.groundLayer2;
+    this.playerShadow;
+    this.cactusT = [];
+    this.pteroT = [];
+    this.canCactus = true;
+    this.life = 3
+    this.hasCrouched = false;
+    this.crouchCounter
+    this.canDyna = true
+    this.canPtero = true
+    this.canDouble = false;
+    this.canSpawn = true;
+    this.jumpCounter;
+    this.score = 0;
+    this.cloudT = [];
+    let scene = this;
+    this.config = new Config();
     this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
-    this.groundLayer.setSize(800, 10);
+    this.groundLayer.setSize(1600, 10);
     this.groundLayer.body.immovable = true;
-    groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
+    this.groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
 
-    player = this.physics.add.sprite(config.gameOptions.playerStartPosition, 450, 'playerS2');
-    player.depth = 100;
-    playerShadow = this.add.sprite((config.gameOptions.playerStartPosition - 5), 580, 'playerShadow');
-    playerShadow.depth = 1;
-    playerShadow.alpha = 0.2;
-    playerShadow.blendMode = 'MULTIPLY';
+    this.player = this.physics.add.sprite(this.config.gameOptions.playerStartPosition, 450, 'playerS2');
+    this.player.depth = 100;
+    this.playerShadow = this.add.sprite((this.config.gameOptions.playerStartPosition - 5), 580, 'this.playerShadow');
+    this.playerShadow.depth = 1;
+    this.playerShadow.alpha = 0.2;
+    this.playerShadow.blendMode = 'MULTIPLY';
 
-    player.play('playerJump');
-    player.setSize(46, 49, true);
-    player.setCollideWorldBounds(true);
-    player.body.setGravityY(config.gameConfig.physics.arcade.gravity.y);
-    player.jumps = 0;
-    player.isHit = false;
-    player.isInvulnerable = false;
-    hasClicked = false;
-    this.physics.add.collider(player, this.groundLayer);
-    player.setInteractive();
-    player.on('pointerdown', function () {
-        if (!hasClicked) {
+    this.player.play('playerJump');
+    this.player.setSize(46, 49, true);
+    this.player.setCollideWorldBounds(true);
+    this.player.body.setGravityY(this.config.gameConfig.physics.arcade.gravity.y);
+    this.player.jumps = 0;
+    this.player.isHit = false;
+    this.player.isInvulnerable = false;
+    this.hasClicked = false;
+    this.physics.add.collider(this.player, this.groundLayer);
+    this.player.setInteractive();
+    this.player.on('pointerdown', function () {
+        if (!this.hasClicked) {
             scene.jump();
-            hasClicked = true
+            this.hasClicked = true
         }
     })
 
     this.jump = function () {
-        jumpCounter += 1
-        if (player.body.touching.down) {
-            player.jumps = 0;
-            jumpCounter = 1
+        this.jumpCounter += 1
+        if (this.player.body.touching.down) {
+            this.player.jumps = 0;
+            this.jumpCounter = 1
         }
-        if (!player.body.touching.down && hasCrouched && canDouble/*&& !hasDoubled*/) {
-            player.jumps -= gameOptions.doubleJumpsMax;
-            canDouble = false;
+        if (!this.player.body.touching.down && this.hasCrouched && this.canDouble/*&& !hasDoubled*/) {
+            this.player.jumps -= this.config.gameOptions.doubleJumpsMax;
+            this.canDouble = false;
             //hasDoubled = true;
         }
-        if (player.jumps < gameOptions.jumpNumber && !(crouchCounter > gameOptions.crouchJumpTime)) {
-            player.jumps++;
-            player.setVelocityY(-gameOptions.jumpVelocity);
-            switch (jumpCounter) {
+        if (this.player.jumps < this.config.gameOptions.jumpNumber && !(this.crouchCounter > this.config.gameOptions.crouchJumpTime)) {
+            this.player.jumps++;
+            this.player.setVelocityY(-this.config.gameOptions.jumpVelocity);
+            switch (this.jumpCounter) {
                 case 1:
                     this.sound.play('jump1');
                     break;
@@ -141,23 +185,23 @@ create()
                     break;
 
             }
-            player.play('playerJump');
+            this.player.play('playerJump');
         }
-        if (player.jumps < -gameOptions.doubleJumpsMax) {
-            player.jumps = -gameOptions.doubleJumpsMax;
+        if (this.player.jumps < -this.config.gameOptions.doubleJumpsMax) {
+            this.player.jumps = -this.config.gameOptions.doubleJumpsMax;
         }
-        if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.crouchJumpTime && player.body.touching.down) {
-            player.setVelocityY(-gameOptions.jumpVelocity * 1.2);
+        if (!(this.keys.DOWN.isDown || this.keys.S.isDown) && this.crouchCounter > this.config.gameOptions.crouchJumpTime && this.player.body.touching.down) {
+            this.player.setVelocityY(-this.config.gameOptions.jumpVelocity * 1.2);
             this.sound.play('jump1');
-            jumpCounter -= 1
+            this.jumpCounter -= 1
         }
     }
-
-    keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-    keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
-    keys.Z = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-    keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    keys.Y = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
+    this.keys = {};
+    this.keys.UP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+    this.keys.DOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+    this.keys.Z = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    this.keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    this.keys.Y = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
 
 
 
@@ -185,14 +229,14 @@ create()
                 cactus = this.physics.add.sprite(posX, posY, 'stego');
                 cactus.play('stego');
         }
-        cactus.body.setGravityY(Config.gameConfig.physics.arcade.gravity.y);
+        cactus.body.setGravityY(this.config.gameConfig.physics.arcade.gravity.y);
         cactus.setBounce(bounce);
         cactus.scaleX = ratio;
         cactus.scaleY = ratio;
         this.physics.add.collider(cactus, this.groundLayer, function (cldPlayer, cldCactus) {
             cactus.hasLanded = true;
         });
-        // this.physics.add.collider(cactus, groundLayer2);
+        // this.physics.add.collider(cactus, this.groundLayer2);
         cactus.hasTouched = false;
         cactus.hasLanded = false;
         cactus.type = type
@@ -217,13 +261,13 @@ create()
         cactus.on('pointerout', function (pointer, localX, localY, event) {
             cactus.setAlpha(1);
         });
-        this.physics.add.overlap(player, cactus, function (cldPlayer, cldCactus) {
+        this.physics.add.overlap(this.player, cactus, function (cldPlayer, cldCactus) {
             if (!cldCactus.hasTouched) {
                 cldCactus.hasTouched = true;
                 scene.hitDino();
             }
         }, null, this);
-        cactusT.push(cactus);
+        this.cactusT.push(cactus);
         /*switch(type){
             case 0:
                 break;
@@ -236,16 +280,16 @@ create()
     this.addPtero = function (posX, posY, ratio) {
         let ptero = this.physics.add.sprite(posX, posY, 'ptero');
         ptero.play('ptero');
-        ptero.body.setGravityY(-Config.gameConfig.physics.arcade.gravity.y);
+        ptero.body.setGravityY(-this.config.gameConfig.physics.arcade.gravity.y);
         ptero.hasTouched = false;
         ptero.speed = ratio + 6;
-        this.physics.add.overlap(player, ptero, function (cldPlayer, cldPtero) {
+        this.physics.add.overlap(this.player, ptero, function (cldPlayer, cldPtero) {
             if (!cldPtero.hasTouched) {
                 cldPtero.hasTouched = true;
                 scene.hitDino();
             }
         }, null, this);
-        pteroT.push(ptero);
+        this.pteroT.push(ptero);
         ptero.setInteractive();
         ptero.on('pointerdown', function () {
             scene.sound.play('break');
@@ -272,21 +316,21 @@ create()
         cloud.setDepth(-1000);
         cloud.speed = ratio * 2;
         cloud.setScale(ratio, ratio);
-        cloud.body.setGravityY(-Config.gameConfig.physics.arcade.gravity.y);
-        cloudT.push(cloud);
-        //this.physics.add.overlap(player, cloud, function(cldPlayer, cldPtero) {
+        cloud.body.setGravityY(-this.config.gameConfig.physics.arcade.gravity.y);
+        this.cloudT.push(cloud);
+        //this.physics.add.overlap(this.player, cloud, function(cldPlayer, cldPtero) {
         //}, null, this);
     }
 
     /*this.addLife = function(posX, posY, ratio) {
         let life = this.physics.add.sprite(posX, posY, 'life');
         life.play('life'); 
-        life.body.setGravityY(-Config.gameConfig.physics.arcade.gravity.y);
+        life.body.setGravityY(-this.config.gameConfig.physics.arcade.gravity.y);
         life.hasTouched = false;
         life.speed = ratio + 6;
-        this.physics.add.overlap(player, life, function(cldPlayer, cldlife) {
+        this.physics.add.overlap(this.player, life, function(cldPlayer, cldlife) {
             if (!cldlife.hasTouched) {
-                gameOptions.life += 1
+                this.config.gameOptions.life += 1
             }
         }, null, this);
         lifeT.push(life);
@@ -305,38 +349,38 @@ create()
     //ADD DYNA
     this.addDyna = function (posX, posY) {
         dynaGravityY = 500;
-        dyna = this.physics.add.sprite(posX, posY, 'dynamite');
-        dyna.setCollideWorldBounds(true);
-        dyna.body.setGravityY(dynaGravityY);
-        this.physics.add.collider(dyna, this.groundLayer);
-        dyna.setVelocityX(300);
-        dyna.setVelocityY(-700);
-        canDyna = false
+        this.dyna = this.physics.add.sprite(posX, posY, 'dynamite');
+        this.dyna.setCollideWorldBounds(true);
+        this.dyna.body.setGravityY(dynaGravityY);
+        this.physics.add.collider(this.dyna, this.groundLayer);
+        this.dyna.setVelocityX(300);
+        this.dyna.setVelocityY(-700);
+        this.canDyna = false
         setTimeout(function () {
-            canDyna = true
-        }, gameOptions.dynaLimit)
-        // console.log(dyna);
+            this.canDyna = true
+        }, this.config.gameOptions.dynaLimit)
+        // console.log(this.dyna);
         //  angle;
 
     }
 
     this.hitDino = function () {
-        if (!player.isHit) {
-            player.play('playerHitA')
+        if (!this.player.isHit) {
+            this.player.play('playerHitA')
             this.sound.play('damage');
-            life -= 1;
-            player.isHit = true;
+            this.life -= 1;
+            this.player.isHit = true;
             setTimeout(function () {
-                player.isHit = false;
-            }, gameOptions.invu)
+                this.player.isHit = false;
+            }, this.config.gameOptions.invu)
             console.log('Touché');
         }
     }
 
-    flash = this.add.sprite(Config.gameConfig.width / 2, Config.gameConfig.height / 2, 'flash');
-    flash.setAlpha(0);
+    this.flash = this.add.sprite(this.config.gameConfig.width / 2, this.config.gameConfig.height / 2, 'flash');
+    this.flash.setAlpha(0);
 
-    pointer = this.input.activePointer;
+    let pointer = this.input.activePointer;
     let clkDownD;
     let clkDR;
     this.input.on('pointerdown', function (pointer) {
@@ -364,116 +408,116 @@ create()
     pointer = this.input.activePointer;
 
 
-    console.log(player);
+    console.log(this.player);
 } 
 
 update()
 {
     console.log("update")
-    if (Config.gameConfig.debug) {
-        gameOptions.life = 999999;
+    if (this.config.gameConfig.debug) {
+        this.life = 999999;
     }
 
     let scene = this;
-    //PLAYER
-    player.x = gameOptions.playerStartPosition;
-    if (groundLayer2) {
-        groundLayer2.tilePositionX += 4
+    //this.player
+    this.player.x = this.config.gameOptions.playerStartPosition;
+    if (this.groundLayer2) {
+        this.groundLayer2.tilePositionX += 4
     }
 
-    playerShadow.alpha = (player.y / Config.gameConfig.height) * 0.3;
-    playerShadow.scaleX = ((player.y / Config.gameConfig.height) * 0.5) + 0.7;
-    playerShadow.scaleY = 0.5
+    this.playerShadow.alpha = (this.player.y / this.config.gameConfig.height) * 0.3;
+    this.playerShadow.scaleX = ((this.player.y / this.config.gameConfig.height) * 0.5) + 0.7;
+    this.playerShadow.scaleY = 0.5
 
-    if (player.isHit) {
-        if (player.alpha > 0.5) {
-            player.alpha = 0.4;
+    if (this.player.isHit) {
+        if (this.player.alpha > 0.5) {
+            this.player.alpha = 0.4;
         }
         else {
-            player.alpha = 1;
+            this.player.alpha = 1;
         }
     }
     else {
-        player.alpha = 1;
+        this.player.alpha = 1;
     }
 
-    if (keys.DOWN.isDown || keys.S.isDown) {
-        if (canSoundCrouch) {
+    if (this.keys.DOWN.isDown || this.keys.S.isDown) {
+        if (this.canSoundCrouch) {
             this.sound.play('crouch');
-            canSoundCrouch = false;
+            this.canSoundCrouch = false;
         }
-        if (!player.body.touching.down) {
-            player.setTexture('playerSit');
+        if (!this.player.body.touching.down) {
+            this.player.setTexture('playerSit');
 
-            isSit = true;
-            window.clearTimeout(sitTimeout);
-            sitTimeout = setTimeout(function () {
-                isSit = false;
+            this.isSit = true;
+            window.clearTimeout(this.sitTimeout);
+            this.sitTimeout = setTimeout(function () {
+                this.isSit = false;
             }, 200)
         }
         else {
-            if (!isSit) {
-                player.setTexture('playerCrouch');
+            if (!this.isSit) {
+                this.player.setTexture('playerCrouch');
 
             }
             else {
-                if (canLandCrouchSnd) {
+                if (this.canLandCrouchSnd) {
                     this.sound.play('landCrouch');
-                    canLandCrouchSnd = false
+                    this.canLandCrouchSnd = false
                 }
             }
         }
-        //player.setTexture();
-        player.body.setGravityY(10000);
-        hasCrouched = true
+        //this.player.setTexture();
+        this.player.body.setGravityY(10000);
+        this.hasCrouched = true
     }
     else {
-        player.body.setGravityY(Config.gameConfig.physics.arcade.gravity.y);
-        canSoundCrouch = true;
+        this.player.body.setGravityY(this.config.gameConfig.physics.arcade.gravity.y);
+        this.canSoundCrouch = true;
     }
-    if (!(keys.DOWN.isDown || keys.S.isDown) && crouchCounter > gameOptions.crouchJumpTime) {
+    if (!(this.keys.DOWN.isDown || this.keys.S.isDown) && this.crouchCounter > this.config.gameOptions.crouchJumpTime) {
         this.jump();
-        if (player.body.touching.down && crouchCounter > gameOptions.dynaSpawnTime && (!dyna || !dyna.body) && canDyna) {
-            this.addDyna(player.x, player.y - 50);
+        if (this.player.body.touching.down && this.crouchCounter > this.config.gameOptions.dynaSpawnTime && (!this.dyna || !this.dyna.body) && this.canDyna) {
+            this.addDyna(this.player.x, this.player.y - 50);
         }
     }
-    if (crouchCounter > gameOptions.dynaSpawnTime) {
-        player.setTexture('playerSitGift');
+    if (this.crouchCounter > this.config.gameOptions.dynaSpawnTime) {
+        this.player.setTexture('playerSitGift');
     }
 
-    if (life == 0) {
+    if (this.life == 0) {
         setTimeout(function () {
             scene.scene.restart();
-            gameOptions.spawnDelay = gameOptions.spawnDelayDefault;
+            this.config.gameOptions.spawnDelay = this.config.gameOptions.spawnDelayDefault;
         }, 1200)
         this.scene.pause();
-        player.setAlpha(1);
+        this.player.setAlpha(1);
     }
 
-    if (player.body.touching.down) {
-        hasClicked = false
-        hasCrouched = false;
-        canDouble = true;
-        if (keys.DOWN.isDown || keys.S.isDown) {
-            crouchCounter++;
+    if (this.player.body.touching.down) {
+        this.hasClicked = false
+        this.hasCrouched = false;
+        this.canDouble = true;
+        if (this.keys.DOWN.isDown || this.keys.S.isDown) {
+            this.crouchCounter++;
         }
-        if (player.anims.currentAnim.key != 'playerWalk') {
-            if (!isSit && !player.isHit) {
-                player.play('playerWalk');
+        if (this.player.anims.currentAnim.key != 'playerWalk') {
+            if (!this.isSit && !this.player.isHit) {
+                this.player.play('playerWalk');
             }
         }
         //hasDoubled = false;
     }
     else {
-        crouchCounter = 0;
+        this.crouchCounter = 0;
 
     }
-    if (isSit && canLandCrouchSnd && player.body.touching.down) {
+    if (this.isSit && this.canLandCrouchSnd && this.player.body.touching.down) {
         this.sound.play('landCrouch');
-        canLandCrouchSnd = false
+        this.canLandCrouchSnd = false
     }
-    if (!isSit) {
-        canLandCrouchSnd = true
+    if (!this.isSit) {
+        this.canLandCrouchSnd = true
     }
 
     /*
@@ -495,18 +539,18 @@ update()
 
     //dynamite spawn
 
-    if (dyna) {
-        dyna.angle += 5;
-        if (dyna.body && dyna.body.touching.down) {
-            dyna.destroy();
+    if (this.dyna) {
+        this.dyna.angle += 5;
+        if (this.dyna.body && this.dyna.body.touching.down) {
+            this.dyna.destroy();
             flash.setAlpha(1);
             this.sound.play('boom');
             cameraShakePositive = 50;
-            for (c in cactusT) {
-                cactusT[c].isDyna = true;
+            for (let c in this.cactusT) {
+                this.cactusT[c].isDyna = true;
             }
-            for (p in pteroT) {
-                pteroT[p].isDyna = true;
+            for (let p in this.pteroT) {
+                this.pteroT[p].isDyna = true;
             }
         }
 
@@ -520,28 +564,28 @@ update()
 
     }
 
-    for (c in cactusT) {
-        if (cactusT[c]) {
-            let cact = cactusT[c];
+    for (let c in this.cactusT) {
+        if (this.cactusT[c]) {
+            let cact = this.cactusT[c];
             if (cact.hasLanded) {
-                if (cact.isDyna && cact.x > gameOptions.playerStartPosition) {
+                if (cact.isDyna && cact.x > this.config.gameOptions.playerStartPosition) {
                     cact.x += 4;
                 }
                 else {
                     cact.x -= 4;
                 }
                 if (cact.x < 0) {
-                    cactusT[c].destroy();
-                    delete cactusT[c];
-                    cactusT = cactusT.filter(function (ct) { if (ct) { return true } });
+                    this.cactusT[c].destroy();
+                    delete this.cactusT[c];
+                    this.cactusT = this.cactusT.filter(function (ct) { if (ct) { return true } });
                 }
             }
         }
     }
 
-    for (p in pteroT) {
-        let pte = pteroT[p];
-        if (pte.isDyna && pte.x > gameOptions.playerStartPosition) {
+    for (let p in this.pteroT) {
+        let pte = this.pteroT[p];
+        if (pte.isDyna && pte.x > this.config.gameOptions.playerStartPosition) {
             pte.flipX = true;
             pte.x += pte.speed;
         }
@@ -550,72 +594,66 @@ update()
         }
     }
 
-    for (c in cloudT) {
-        let clou = cloudT[c]; {
+    for (let c in this.cloudT) {
+        let clou = this.cloudT[c]; {
             clou.x -= clou.speed;
         }
     }
-
-    cloudDensSeed = getRandomRnd(1, gameOptions.cloudDensity + 1);
-    if (cloudDensSeed === 1) {
-        this.addCloud(Config.gameConfig.width, getRandom(0, Config.gameConfig.height - 100), getRandom(0.5, 2));
+    
+    this.cloudDensSeed = getRandomRnd(1, this.config.gameOptions.cloudDensity + 1);
+    if (this.cloudDensSeed === 1) {
+        this.addCloud(this.config.gameConfig.width, getRandom(0, this.config.gameConfig.height - 100), getRandom(0.5, 2));
     }
-
-
-
-
-
-
-
+    
 
 
     /*
     CACTUS SPAWNING
     */
-    waveType = getRandomRnd(0, 10)
+    this.waveType = getRandomRnd(0, 10)
 
-    gameOptions.spawnDelay -= 0.1
+    this.config.gameOptions.spawnDelay -= 0.1
 
-    if (!canSpawn && !spawnTimeout) {
-        spawnTimeout = setTimeout(function () {
-            canSpawn = true;
-            spawnTimeout = false;
-        }, gameOptions.spawnDelay)
+    if (!this.canSpawn && !this.spawnTimeout) {
+        this.spawnTimeout = setTimeout(function () {
+            this.canSpawn = true;
+            this.spawnTimeout = false;
+        }, this.config.gameOptions.spawnDelay)
     };
 
-    if (canSpawn) {
-        canSpawn = false;
-        type = getRandomRnd(0, 4);
+    if (this.canSpawn) {
+        this.canSpawn = false;
+        let type = getRandomRnd(0, 4);
         switch (type) {
             case 0:
-                this.addCactus(Config.gameConfig.width, 550/*getRandom(600, 600)*/, 1, 0.1, 0);
+                this.addCactus(this.config.gameConfig.width, 550/*getRandom(600, 600)*/, 1, 0.1, 0);
                 break;
             case 1:
-                this.addCactus(Config.gameConfig.width, getRandom(0, 700), 2, 1, 1);
+                this.addCactus(this.config.gameConfig.width, getRandom(0, 700), 2, 1, 1);
                 break;
             case 2:
-                let randomSeed = gameOptions.pteroOffset;
+                let randomSeed = this.config.gameOptions.pteroOffset;
                 let randomOne;
                 let randomTwo;
-                if (player.y - randomSeed < 0) {
+                if (this.player.y - randomSeed < 0) {
                     randomOne = 0
                 }
                 else {
-                    randomOne = player.y - randomSeed
+                    randomOne = this.player.y - randomSeed
                 }
-                if (player.y + randomSeed > Config.gameConfig.height) {
-                    randomTwo = Config.gameConfig.height
+                if (this.player.y + randomSeed > this.config.gameConfig.height) {
+                    randomTwo = this.config.gameConfig.height
                 }
                 else {
-                    randomTwo = player.y + randomSeed
+                    randomTwo = this.player.y + randomSeed
                 }
-                this.addPtero(Config.gameConfig.width, getRandom(randomOne, randomTwo), 1);
+                this.addPtero(this.config.gameConfig.width, getRandom(randomOne, randomTwo), 1);
                 break;
             case 3:
-                this.addCactus(Config.gameConfig.width, 550/*getRandom(600, 600)*/, getRandom(1.5, 2.5), 0.1, 2);
+                this.addCactus(this.config.gameConfig.width, 550/*getRandom(600, 600)*/, getRandom(1.5, 2.5), 0.1, 2);
                 break;
             /*case 3:
-                this.addLife(Config.gameConfig.width, getRandom(0, Config.gameConfig.height), 1);
+                this.addLife(this.config.gameConfig.width, getRandom(0, this.config.gameConfig.height), 1);
                 break;*/
             default:
                 console.log("ERROR SPAWN ENEMY");
