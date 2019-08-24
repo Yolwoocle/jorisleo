@@ -1,7 +1,6 @@
 import Config from "./Config"
 export default class Cactus extends Phaser.GameObjects.Sprite { 
     constructor(config) {
-        console.log("cactusconstructor1")
         switch (config.type) {
             case 0:
                 let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
@@ -21,18 +20,14 @@ export default class Cactus extends Phaser.GameObjects.Sprite {
         this.type = config.type;    
         this.hasTouched = false;
         this.hasLanded = false;
-        console.log("cactusconstructor2")
-        this.create()
+        this.create();
     }
 
     create() {
-        console.log("cactuscreate")
-        console.log(this);
         let scene = this.scene;
         let cactus = this;
         this.body.setGravityY(scene.config.gameConfig.physics.arcade.gravity.y);
-    //      ^ à partir de là j'ai commencé à désespérer.
-        // this.physics.add.collider(cactus, this.groundLayer2);
+        scene.physics.add.collider(cactus, this.groundLayer2);
         this.setInteractive();
         this.on('pointerdown', function () {
             scene.sound.play('break');
@@ -44,8 +39,9 @@ export default class Cactus extends Phaser.GameObjects.Sprite {
                 this.body.setGravityY(10000);
                 this.anims.stop();
                 this.setTexture('cactusS1');
-                this.setBounce(0.1);
+                this.bounce = 0.1;
                 this.body.width = this.body.width / 2;
+
             }
         })
         this.on('pointerover', function (pointer, localX, localY, event) {
@@ -54,6 +50,17 @@ export default class Cactus extends Phaser.GameObjects.Sprite {
         this.on('pointerout', function (pointer, localX, localY, event) {
             cactus.setAlpha(1);
         });
+
+        scene.cactusT.push(cactus);
+        scene.physics.add.collider(cactus, scene.groundLayer, function (cldPlayer, cldCactus) {
+            cactus.hasLanded = true;
+        });
+        scene.physics.add.overlap(scene.player, cactus, function (cldPlayer, cldCactus) {
+            if (!cldCactus.hasTouched) {
+                cldCactus.hasTouched = true;
+                scene.hitDino();
+            }
+        }, null, scene);
         scene.cactusT.push(cactus);
         /*switch(type){
             case 0:
@@ -62,7 +69,5 @@ export default class Cactus extends Phaser.GameObjects.Sprite {
                     cactus.body.width /= 2;
                 break;
         }*/
-        console.log("cactuscreateEnd")
     }
-
 } 

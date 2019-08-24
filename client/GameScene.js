@@ -11,6 +11,8 @@ function getRandomRnd(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+
+
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super({
@@ -19,7 +21,6 @@ export default class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        console.log("preload")
         this.sound.add('jump1');
         this.sound.add('jump2');
         this.sound.add('jump3');
@@ -80,13 +81,12 @@ export default class GameScene extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers("playerJump"),
             frameRate: 10,
         });
-        console.log("create")
-        this.add.text(0, 0, 'Hello World', { fontFamily: '"Roboto Condensed"' });
+        //this.add.text(0, 0, 'Subscribe to CaveUpdate on Twitter', { fontFamily: '"Roboto Condensed"' , color : '"black"' });
 
         this.camera;
         this.isSit = false;
         this.sitTimeout;
-        this.spawnTimeout;
+        this.spawnTimeout = false;
         this.waveType;
         this.canSoundCrouch;
         this.canLandCrouchSnd;
@@ -100,6 +100,7 @@ export default class GameScene extends Phaser.Scene {
         var map;
         var groundLayer;
         var obstacleGroup;
+        this.canSpawn = true;
         this.groundLayer2;
         this.playerShadow;
         this.cactusT = [];
@@ -111,7 +112,7 @@ export default class GameScene extends Phaser.Scene {
         this.canDyna = true
         this.canPtero = true
         this.canDouble = false;
-        this.canSpawn = true;
+        
         this.jumpCounter;
         this.score = 0;
         this.cloudT = [];
@@ -124,7 +125,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.player = this.physics.add.sprite(this.config.gameOptions.playerStartPosition, 450, 'playerS2');
         this.player.depth = 100;
-        this.playerShadow = this.add.sprite((this.config.gameOptions.playerStartPosition - 5), 580, 'this.playerShadow');
+        this.playerShadow = this.add.sprite((this.config.gameOptions.playerStartPosition - 5), 580, 'playerShadow');
         this.playerShadow.depth = 1;
         this.playerShadow.alpha = 0.2;
         this.playerShadow.blendMode = 'MULTIPLY';
@@ -222,51 +223,7 @@ export default class GameScene extends Phaser.Scene {
                 bounce: bounce, 
                 type: type
             });
-            /*
-            switch (type) {
-                case 0:
-                    catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
-                    cactus = this.physics.add.sprite(posX, posY, catT[Math.floor(Math.random() * 4)]);
-                    break;
-                case 1:
-                    cactus = this.physics.add.sprite(posX, posY, 'cactusW1');
-                    cactus.play('cactusW1');
-                    break;
-                case 2:
-                    cactus = this.physics.add.sprite(posX, posY, 'stego');
-                    cactus.play('stego');
-            }
-            cactus.body.setGravityY(this.config.gameConfig.physics.arcade.gravity.y);
-            cactus.setBounce(bounce);
-            cactus.scaleX = ratio;
-            cactus.scaleY = ratio;
-            // this.physics.add.collider(cactus, this.groundLayer2);
-            cactus.hasTouched = false;
-            cactus.hasLanded = false;
-            cactus.type = type
-            cactus.setInteractive();
-            cactus.on('pointerdown', function () {
-                scene.sound.play('break');
-                if (cactus.type !== 1) {
-                    cactus.destroy();
-                }
-                else {
-                    cactus.type = 0;
-                    cactus.body.setGravityY(10000);
-                    cactus.anims.stop();
-                    cactus.setTexture('cactusS1');
-                    cactus.setBounce(0.1);
-                    cactus.body.width /= 2;
-                }
-            })
-            cactus.on('pointerover', function (pointer, localX, localY, event) {
-                cactus.setAlpha(0.4);
-            });
-            cactus.on('pointerout', function (pointer, localX, localY, event) {
-                cactus.setAlpha(1);
-            });
-            */
-            this.physics.add.collider(cactus, this.groundLayer, function (cldPlayer, cldCactus) {
+            /*this.physics.add.collider(cactus, this.groundLayer, function (cldPlayer, cldCactus) {
                 cactus.hasLanded = true;
             });
             this.physics.add.overlap(this.player, cactus, function (cldPlayer, cldCactus) {
@@ -275,7 +232,7 @@ export default class GameScene extends Phaser.Scene {
                     scene.hitDino();
                 }
             }, null, this);
-            this.cactusT.push(cactus);
+            this.cactusT.push(cactus);*/
             /*switch(type){
                 case 0:
                     break;
@@ -418,6 +375,8 @@ export default class GameScene extends Phaser.Scene {
 
         console.log('EndCreate');
     }
+
+
 
     update() {
         if (this.config.gameConfig.debug) {
@@ -611,22 +570,23 @@ export default class GameScene extends Phaser.Scene {
             this.addCloud(this.config.gameConfig.width, getRandom(0, this.config.gameConfig.height - 100), getRandom(0.5, 2));
         }
 
-
-
         /*
         CACTUS SPAWNING
         */
-        this.waveType = getRandomRnd(0, 10)
+
+        //this.waveType = getRandomRnd(0, 10)
 
         this.config.gameOptions.spawnDelay -= 0.1
 
         if (!this.canSpawn && !this.spawnTimeout) {
             this.spawnTimeout = setTimeout(function () {
                 this.canSpawn = true;
-                this.spawnTimeout = false;
+                //this.spawnTimeout = false;
             }, this.config.gameOptions.spawnDelay)
         };
-
+        console.log(this.canSpawn)
+        console.log(this.spawnTimeout)
+        console.log("-----------")
         if (this.canSpawn) {
             this.canSpawn = false;
             let type = getRandomRnd(0, 4);
@@ -635,7 +595,7 @@ export default class GameScene extends Phaser.Scene {
                     this.addCactus(this.config.gameConfig.width, 550/*getRandom(600, 600)*/, 1, 0.1, 0);
                     break;
                 case 1:
-                    this.addCactus(this.config.gameConfig.width, getRandom(0, 700), 2, 1, 1);
+                    this.addCactus(this.config.gameConfig.width, getRandom(0, 700), 3, 1, 1);
                     break;
                 case 2:
                     let randomSeed = this.config.gameOptions.pteroOffset;
