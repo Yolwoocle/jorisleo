@@ -21,10 +21,11 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
                 break;
             case 4:
                 super(config.scene, config.posX, config.posY, 'sphinxIdle')
+                this.play('sphinxIdle')
                 break;
         }
         config.scene.physics.world.enable(this);
-        config.scene.add.existing(this);
+        config.scene.add.existing(this);  
         this.scene = config.scene;
         this.type = config.type;    
         this.hasTouched = false;
@@ -38,9 +39,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
     create() {
         let scene = this.scene;
         let enemy = this;
-        if (this.type === 2){
+        if (this.type === 2 || this.type === 1){
             this.body.setGravityY(-scene.config.gameConfig.physics.arcade.gravity.y);
-            this.speed = this.ratio + 6;
         }else{
             this.body.setGravityY(scene.config.gameConfig.physics.arcade.gravity.y);
             scene.physics.add.collider(enemy, scene.groundLayer, function (cldPlayer, cldCactus) {
@@ -54,13 +54,10 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
                 this.destroy();
             }
             else {
-                this.type = 0;
-                this.body.setGravityY(10000);
+                this.body.setGravityY(scene.config.gameConfig.physics.arcade.gravity.y);
                 this.anims.stop();
                 this.setTexture('cactusS1');
-                this.body.bounce = 0.1;
                 this.body.width = this.body.width / 2;
-
             }
         })
         this.on('pointerover', function (pointer, localX, localY, event) {
@@ -78,7 +75,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
                 scene.hitDino();
             }
         }, null, scene);
-        
+
         /*switch(type){
             case 0:
                 break;

@@ -11,8 +11,6 @@ function getRandomRnd(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-
-
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super({
@@ -83,6 +81,7 @@ export default class GameScene extends Phaser.Scene {
         });
         //this.add.text(0, 0, 'Subscribe to CaveUpdate on Twitter', { fontFamily: '"Roboto Condensed"' , color : '"black"' });
 
+        this.cactusVelCounter = 0;
         this.camera;
         this.isSit = false;
         this.sitTimeout;
@@ -104,7 +103,6 @@ export default class GameScene extends Phaser.Scene {
         this.groundLayer2;
         this.playerShadow;
         this.enemyT = [];
-        
         this.canEnemy = true;
         this.life = 3
         this.hasCrouched = false;
@@ -115,6 +113,7 @@ export default class GameScene extends Phaser.Scene {
         this.jumpCounter;
         this.score = 0;
         this.cloudT = [];
+
         let scene = this;
         this.config = new Config();
         this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
@@ -202,8 +201,6 @@ export default class GameScene extends Phaser.Scene {
         this.keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.keys.Y = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
 
-
-
         this.input.keyboard.on('keydown_UP', function () {
             scene.jump();
         });
@@ -224,32 +221,6 @@ export default class GameScene extends Phaser.Scene {
             });
         }
 
-        /*this.addPtero = function (posX, posY, ratio) {
-            let ptero = this.physics.add.sprite(posX, posY, 'ptero');
-            ptero.play('ptero');
-            ptero.body.setGravityY(-this.config.gameConfig.physics.arcade.gravity.y);
-            ptero.hasTouched = false;
-            ptero.speed = ratio + 6;
-            this.physics.add.overlap(this.player, ptero, function (cldPlayer, cldPtero) {
-                if (!cldPtero.hasTouched) {
-                    cldPtero.hasTouched = true;
-                    scene.hitDino();
-                }
-            }, null, this);
-            this.pteroT.push(ptero);
-            ptero.setInteractive();
-            ptero.on('pointerdown', function () {
-                scene.sound.play('break');
-                ptero.destroy();
-            })
-            ptero.on('pointerover', function (pointer, localX, localY, event) {
-                ptero.setAlpha(0.4);
-            });
-            ptero.on('pointerout', function (pointer, localX, localY, event) {
-                ptero.setAlpha(1);
-            });
-        }*/
-
         this.addCloud = function (posX, posY, ratio) {
             let type = getRandomRnd(1, 11);
             let cloud
@@ -268,30 +239,6 @@ export default class GameScene extends Phaser.Scene {
             //this.physics.add.overlap(this.player, cloud, function(cldPlayer, cldPtero) {
             //}, null, this);
         }
-
-        /*this.addLife = function(posX, posY, ratio) {
-            let life = this.physics.add.sprite(posX, posY, 'life');
-            life.play('life'); 
-            life.body.setGravityY(-this.config.gameConfig.physics.arcade.gravity.y);
-            life.hasTouched = false;
-            life.speed = ratio + 6;
-            this.physics.add.overlap(this.player, life, function(cldPlayer, cldlife) {
-                if (!cldlife.hasTouched) {
-                    this.config.gameOptions.life += 1
-                }
-            }, null, this);
-            lifeT.push(life);
-            life.setInteractive();
-            life.on('pointerdown', function(){
-                    life.destroy();
-            })
-            life.on('pointerover', function(pointer, localX, localY, event){ 
-                life.setAlpha(0.4);
-             });
-            life.on('pointerout', function(pointer, localX, localY, event){ 
-                life.setAlpha(1);
-             });
-        }*/
 
         //ADD DYNA
         this.addDyna = function (posX, posY) {
@@ -354,9 +301,11 @@ export default class GameScene extends Phaser.Scene {
         pointer = this.input.activePointer;
     }
 
-
-
     update() {
+        if (this.config.gameConfig.physics.arcade.debug){
+            this.life = 99999
+        }
+
         if (this.config.gameConfig.debug) {
             this.life = 999999;
         }
@@ -504,10 +453,13 @@ export default class GameScene extends Phaser.Scene {
 
         }
 
+        this.cactusVelCounter += 0.001;        
+        console.log(this.cactusVelCounter + " " + Math.cos(this.cactusVelCounter)*10)
+
         for (let c in this.enemyT) {
             if (this.enemyT[c]) {
                 let enem = this.enemyT[c];
-                if ((enem.hasLanded && enem.type !== 2) || enem.type === 2) {
+                if ((enem.hasLanded && (enem.type !== 2 || enem.type !== 1)) || (enem.type === 2 || enem.type === 1)) {
                     if (enem.isDyna && enem.x > this.config.gameOptions.playerStartPosition) {
                         enem.x += 4;
                         enem.flipX = true
@@ -521,8 +473,13 @@ export default class GameScene extends Phaser.Scene {
                         this.enemyT = this.enemyT.filter(function (ct) { if (ct) { return true } });
                     }
                 }
+                if (enem.type === 1) {
+                    enem.y += this.cactusVelCounter;
+                }
             }
         }
+
+        
 
         for (let c in this.cloudT) {
             let clou = this.cloudT[c]; {
@@ -596,6 +553,4 @@ export default class GameScene extends Phaser.Scene {
             } 
         }
     }
-
-
 }
