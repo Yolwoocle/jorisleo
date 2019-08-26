@@ -7,9 +7,7 @@ export default class LoadAssets extends Phaser.Scene {
     }
 
     preload() {
-        console.log('preload');
         this.load.on('complete', () => {
-            console.log('complete');
             this.scene.start('GameScene');
         });
 
@@ -53,6 +51,14 @@ export default class LoadAssets extends Phaser.Scene {
             frameWidth: 39,
             frameHeight: 19,
         });
+        this.load.spritesheet('sphinxAttack', "sprites/sphinxAttack.png", {
+            frameWidth: 51,
+            frameHeight: 29,
+        });
+        this.load.spritesheet('sphinxFade', "sprites/sphinxFade.png", {
+            frameWidth: 51,
+            frameHeight: 29,
+        });
 
         this.load.image('ground', 'sprites/ground.png');
         this.load.image('playerSitGift', 'sprites/dinoSitGift.png');
@@ -65,6 +71,7 @@ export default class LoadAssets extends Phaser.Scene {
         this.load.image('cloud1', 'sprites/cloud1.png');
         this.load.image('life', 'sprites/life.png');
         this.load.image('blank', 'sprites/blank.png');
+        this.load.image('sphinxIdle', 'sprites/sphinxIdle.png')
 
         this.load.audio('jump1', 'sounds/jump1.wav');
         this.load.audio('jump2', 'sounds/jump2.wav');
@@ -107,8 +114,6 @@ export default class LoadAssets extends Phaser.Scene {
         this.load.audio('boom', 'sounds/explosion.wav');
         this.load.audio('damage', 'sounds/damage.wav');
         this.load.audio('break', 'sounds/cactusBreak.wav');
-
-        console.log("loadassets");
     }
 
 }

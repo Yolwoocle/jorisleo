@@ -1,6 +1,6 @@
 import LoadAssets from "./LoadAssets";
 import Config from "./Config";
-import Cactus from "./Cactus";
+import Enemy from "./Enemy";
 
 
 function getRandom(min, max) {
@@ -103,14 +103,13 @@ export default class GameScene extends Phaser.Scene {
         this.canSpawn = true;
         this.groundLayer2;
         this.playerShadow;
-        this.cactusT = [];
-        this.pteroT = [];
-        this.canCactus = true;
+        this.enemyT = [];
+        
+        this.canEnemy = true;
         this.life = 3
         this.hasCrouched = false;
         this.crouchCounter
         this.canDyna = true
-        this.canPtero = true
         this.canDouble = false;
         
         this.jumpCounter;
@@ -213,9 +212,9 @@ export default class GameScene extends Phaser.Scene {
             scene.jump();
         });
 
-        this.addCactus = function (posX, posY, ratio, bounce, type) {
+        this.addEnemy = function (posX, posY, ratio, bounce, type) {
             let catT;
-            let cactus = new Cactus({
+            let enemy = new Enemy({
                 scene: this,
                 posX: posX, 
                 posY: posY, 
@@ -223,26 +222,9 @@ export default class GameScene extends Phaser.Scene {
                 bounce: bounce, 
                 type: type
             });
-            /*this.physics.add.collider(cactus, this.groundLayer, function (cldPlayer, cldCactus) {
-                cactus.hasLanded = true;
-            });
-            this.physics.add.overlap(this.player, cactus, function (cldPlayer, cldCactus) {
-                if (!cldCactus.hasTouched) {
-                    cldCactus.hasTouched = true;
-                    scene.hitDino();
-                }
-            }, null, this);
-            this.cactusT.push(cactus);*/
-            /*switch(type){
-                case 0:
-                    break;
-                case 1:
-                        cactus.body.width /= 2;
-                    break;
-            }*/
         }
 
-        this.addPtero = function (posX, posY, ratio) {
+        /*this.addPtero = function (posX, posY, ratio) {
             let ptero = this.physics.add.sprite(posX, posY, 'ptero');
             ptero.play('ptero');
             ptero.body.setGravityY(-this.config.gameConfig.physics.arcade.gravity.y);
@@ -266,7 +248,7 @@ export default class GameScene extends Phaser.Scene {
             ptero.on('pointerout', function (pointer, localX, localY, event) {
                 ptero.setAlpha(1);
             });
-        }
+        }*/
 
         this.addCloud = function (posX, posY, ratio) {
             let type = getRandomRnd(1, 11);
@@ -338,7 +320,6 @@ export default class GameScene extends Phaser.Scene {
                 setTimeout(function () {
                     scene.player.isHit = false;
                 }, this.config.gameOptions.invu)
-                console.log('Touché');
             }
         }
 
@@ -371,9 +352,6 @@ export default class GameScene extends Phaser.Scene {
         })
 
         pointer = this.input.activePointer;
-
-
-        console.log('EndCreate');
     }
 
 
@@ -453,8 +431,8 @@ export default class GameScene extends Phaser.Scene {
         if (this.life == 0) {
             setTimeout(function () {
                 scene.scene.restart();
-                this.config.gameOptions.spawnDelay = this.config.gameOptions.spawnDelayDefault;
-            }, 1200)
+                scene.config.gameOptions.spawnDelay = scene.config.gameOptions.spawnDelayDefault;
+            }, scene.config.gameOptions.spawnDelay)
             this.scene.pause();
             this.player.setAlpha(1);
         }
@@ -511,11 +489,8 @@ export default class GameScene extends Phaser.Scene {
                 this.flash.setAlpha(1);
                 this.sound.play('boom');
                 this.cameraShakePositive = 50;
-                for (let c in this.cactusT) {
-                    this.cactusT[c].isDyna = true;
-                }
-                for (let p in this.pteroT) {
-                    this.pteroT[p].isDyna = true;
+                for (let c in this.enemyT) {
+                    this.enemyT[c].isDyna = true;
                 }
             }
 
@@ -529,33 +504,23 @@ export default class GameScene extends Phaser.Scene {
 
         }
 
-        for (let c in this.cactusT) {
-            if (this.cactusT[c]) {
-                let cact = this.cactusT[c];
-                if (cact.hasLanded) {
-                    if (cact.isDyna && cact.x > this.config.gameOptions.playerStartPosition) {
-                        cact.x += 4;
+        for (let c in this.enemyT) {
+            if (this.enemyT[c]) {
+                let enem = this.enemyT[c];
+                if ((enem.hasLanded && enem.type !== 2) || enem.type === 2) {
+                    if (enem.isDyna && enem.x > this.config.gameOptions.playerStartPosition) {
+                        enem.x += 4;
+                        enem.flipX = true
                     }
                     else {
-                        cact.x -= 4;
+                        enem.x -= 4;
                     }
-                    if (cact.x < 0) {
-                        this.cactusT[c].destroy();
-                        delete this.cactusT[c];
-                        this.cactusT = this.cactusT.filter(function (ct) { if (ct) { return true } });
+                    if (enem.x < 0) {
+                        this.enemyT[c].destroy();
+                        delete this.enemyT[c];
+                        this.enemyT = this.enemyT.filter(function (ct) { if (ct) { return true } });
                     }
                 }
-            }
-        }
-
-        for (let p in this.pteroT) {
-            let pte = this.pteroT[p];
-            if (pte.isDyna && pte.x > this.config.gameOptions.playerStartPosition) {
-                pte.flipX = true;
-                pte.x += pte.speed;
-            }
-            else {
-                pte.x -= pte.speed;
             }
         }
 
@@ -580,22 +545,27 @@ export default class GameScene extends Phaser.Scene {
 
         if (!this.canSpawn && !this.spawnTimeout) {
             this.spawnTimeout = setTimeout(function () {
-                this.canSpawn = true;
-                //this.spawnTimeout = false;
+                scene.canSpawn = true;
+                scene.spawnTimeout = false;
             }, this.config.gameOptions.spawnDelay)
         };
-        console.log(this.canSpawn)
-        console.log(this.spawnTimeout)
-        console.log("-----------")
+        /*
+        Data values :
+        0 - Normal cactus
+        1 - winged cactus
+        2 - Ptero
+        3 - Stegosaurus 
+        4 - UNUSED Sphinx
+        */
         if (this.canSpawn) {
             this.canSpawn = false;
-            let type = getRandomRnd(0, 4);
+            let type = getRandomRnd(0, 3 +1); //changer le 3 à 4 pour avoir des sphinx.
             switch (type) {
                 case 0:
-                    this.addCactus(this.config.gameConfig.width, 550/*getRandom(600, 600)*/, 1, 0.1, 0);
+                    this.addEnemy(this.config.gameConfig.width, 550, 1, 0.1, type);
                     break;
                 case 1:
-                    this.addCactus(this.config.gameConfig.width, getRandom(0, 700), 3, 1, 1);
+                    this.addEnemy(this.config.gameConfig.width, getRandom(0, 700), 2, 1, type);
                     break;
                 case 2:
                     let randomSeed = this.config.gameOptions.pteroOffset;
@@ -613,17 +583,17 @@ export default class GameScene extends Phaser.Scene {
                     else {
                         randomTwo = this.player.y + randomSeed
                     }
-                    this.addPtero(this.config.gameConfig.width, getRandom(randomOne, randomTwo), 1);
+                    this.addEnemy(this.config.gameConfig.width, getRandom(randomOne, randomTwo), 1, 0, type);
                     break;
                 case 3:
-                    this.addCactus(this.config.gameConfig.width, 550/*getRandom(600, 600)*/, getRandom(1.5, 2.5), 0.1, 2);
+                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0.1, type);
                     break;
-                /*case 3:
-                    this.addLife(this.config.gameConfig.width, getRandom(0, this.config.gameConfig.height), 1);
-                    break;*/
+                case 4:
+                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0, type)
                 default:
                     console.log("ERROR SPAWN ENEMY");
-            }
+                    break;
+            } 
         }
     }
 
