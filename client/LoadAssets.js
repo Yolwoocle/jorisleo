@@ -63,6 +63,10 @@ export default class LoadAssets extends Phaser.Scene {
             frameWidth: 51,
             frameHeight: 29,
         });
+        this.load.spritesheet('brickRotateTest', "sprites/brickRotateTest.png", {
+            frameWidth: 42,
+            frameHeight: 25,
+        });
 
         this.load.image('ground', 'sprites/ground.png');
         this.load.image('playerSitGift', 'sprites/dinoSitGift.png');
@@ -101,7 +105,7 @@ export default class LoadAssets extends Phaser.Scene {
         this.load.image('cloud1', 'sprites/cloud1.png');
         this.load.image('life', 'sprites/life.png');
         this.load.image('blank', 'sprites/blank.png');
-
+        this.load.image('spikeBall', 'sprites/spikeBall.png');
 
 
 

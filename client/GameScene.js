@@ -77,9 +77,27 @@ export default class GameScene extends Phaser.Scene {
         this.anims.create({
             key: "playerJump",
             frames: this.anims.generateFrameNumbers("playerJump"),
-            frameRate: 10,
+            frameRate: 5,
+        });
+        this.anims.create({
+            key: "sphinxIdle",
+            frames: this.anims.generateFrameNumbers("sphinxIdle"),
+            frameRate: 2,
+            repeat : -1
+        });
+        this.anims.create({
+            key: "sphinxAttack",
+            frames: this.anims.generateFrameNumbers("sphinxAttack"),
+            frameRate: 2,
+        });
+        this.anims.create({
+            key: "brickRotateTest",
+            frames: this.anims.generateFrameNumbers("brickRotateTest"),
+            frameRate: 20,
+            repeat : -1
         });
         //this.add.text(0, 0, 'Subscribe to CaveUpdate on Twitter', { fontFamily: '"Roboto Condensed"' , color : '"black"' });
+
 
         this.cactusVelCounter = 0;
         this.camera;
@@ -103,23 +121,26 @@ export default class GameScene extends Phaser.Scene {
         this.groundLayer2;
         this.playerShadow;
         this.enemyT = [];
+        this.geyserRectangleT = [];
         this.canEnemy = true;
-        this.life = 3
+        this.life = 3;
         this.hasCrouched = false;
-        this.crouchCounter
-        this.canDyna = true
+        this.crouchCounter;
+        this.canDyna = true;
         this.canDouble = false;
         
         this.jumpCounter;
         this.score = 0;
         this.cloudT = [];
 
+        //CREATE GROUND
         let scene = this;
         this.config = new Config();
-        this.groundLayer = this.physics.add.staticSprite(10, 590, 'blank');
+        this.groundLayer = this.physics.add.staticSprite(10, this.config.gameConfig.height-10, 'blank');
         this.groundLayer.setSize(1600, 10);
         this.groundLayer.body.immovable = true;
         this.groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
+
 
         this.player = this.physics.add.sprite(this.config.gameOptions.playerStartPosition, 450, 'playerS2');
         this.player.depth = 100;
@@ -306,10 +327,6 @@ export default class GameScene extends Phaser.Scene {
             this.life = 99999
         }
 
-        if (this.config.gameConfig.debug) {
-            this.life = 999999;
-        }
-
         let scene = this;
         //this.player
         this.player.x = this.config.gameOptions.playerStartPosition;
@@ -340,12 +357,11 @@ export default class GameScene extends Phaser.Scene {
             }
             if (!this.player.body.touching.down) {
                 this.player.setTexture('playerSit');
-
                 this.isSit = true;
                 window.clearTimeout(this.sitTimeout);
                 this.sitTimeout = setTimeout(function () {
                     scene.isSit = false;
-                }, 200)
+                }, 1000)
             }
             else {
                 if (!this.isSit) {
@@ -450,16 +466,13 @@ export default class GameScene extends Phaser.Scene {
             else {
                 this.flash.setAlpha(0);
             }
-
         }
 
-        this.cactusVelCounter += 0.001;        
-        console.log(this.cactusVelCounter + " " + Math.cos(this.cactusVelCounter)*10)
-
+        this.cactusVelCounter += 0.1;
         for (let c in this.enemyT) {
             if (this.enemyT[c]) {
                 let enem = this.enemyT[c];
-                if ((enem.hasLanded && (enem.type !== 2 || enem.type !== 1)) || (enem.type === 2 || enem.type === 1)) {
+                if ((enem.hasLanded && enem.gravityType !== 1 || enem.gravityType === 1)) {
                     if (enem.isDyna && enem.x > this.config.gameOptions.playerStartPosition) {
                         enem.x += 4;
                         enem.flipX = true
@@ -467,14 +480,28 @@ export default class GameScene extends Phaser.Scene {
                     else {
                         enem.x -= 4;
                     }
-                    if (enem.x < 0) {
+                    //delete entity after reaching border
+                    if (enem.x < 0 || enem.x > this.config.gameConfig.width || enem.y < 0 || enem.y > this.config.gameConfig.height) {
                         this.enemyT[c].destroy();
                         delete this.enemyT[c];
                         this.enemyT = this.enemyT.filter(function (ct) { if (ct) { return true } });
                     }
                 }
-                if (enem.type === 1) {
-                    enem.y += this.cactusVelCounter;
+                if (enem.type === 1){
+                    enem.y += Math.cos(this.cactusVelCounter) * 5;
+                }
+                if (enem.type === 5 && enem.x < enem.geyser.triggerX){
+                    if (enem.geyser.height > enem.geyser.maxHeight){
+                        enem.geyser.height -= 6
+                    }
+                    
+                    if (enem.geyser.height < enem.y){     
+                        enem.geyser.vel -= 1.8
+                    }
+                    else{
+                        enem.geyser.vel += 1.8
+                    }
+                    enem.y += enem.geyser.vel;
                 }
             }
         }
@@ -509,20 +536,22 @@ export default class GameScene extends Phaser.Scene {
         /*
         Data values :
         0 - Normal cactus
-        1 - winged cactus
+        1 - Winged cactus
         2 - Ptero
         3 - Stegosaurus 
         4 - UNUSED Sphinx
+        5 - Geyser
+        6 - TestBrick
         */
         if (this.canSpawn) {
             this.canSpawn = false;
-            let type = getRandomRnd(0, 3 +1); //changer le 3 à 4 pour avoir des sphinx.
+            let type = getRandomRnd(0, 6 +1);
             switch (type) {
                 case 0:
                     this.addEnemy(this.config.gameConfig.width, 550, 1, 0.1, type);
                     break;
                 case 1:
-                    this.addEnemy(this.config.gameConfig.width, getRandom(0, 700), 2, 1, type);
+                    this.addEnemy(this.config.gameConfig.width, getRandom(100, this.config.gameConfig.height), 2, 1, type);
                     break;
                 case 2:
                     let randomSeed = this.config.gameOptions.pteroOffset;
@@ -546,7 +575,16 @@ export default class GameScene extends Phaser.Scene {
                     this.addEnemy(this.config.gameConfig.width, 550, 2, 0.1, type);
                     break;
                 case 4:
-                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0, type)
+                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0, type);
+                    break;
+                case 5:
+                    this.addEnemy(this.config.gameConfig.width, this.config.gameConfig.height-30, 1, 0.1, type);
+                    let rect = this.add.rectangle(this.config.gameConfig.width, this.config.gameConfig.height - this.config.gameOptions.floorHeight,0,37,); 
+                    this.geyserRectangleT.push(rect);
+                    break;
+                case 6:
+                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0, type);
+                    break;
                 default:
                     console.log("ERROR SPAWN ENEMY");
                     break;

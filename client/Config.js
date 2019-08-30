@@ -36,6 +36,7 @@ export default class Config {
         spawnDelay : 1000,
         spawnDelayDefault : 1000,
         cloudDensity : 25,
+        floorHeight : 10,
     }
 
 } 

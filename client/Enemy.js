@@ -1,5 +1,13 @@
 import Config from "./Config"
-//import "phaser"
+
+function getRandom(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function getRandomRnd(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
 export default class Enemy extends Phaser.GameObjects.Sprite { 
     constructor(config) {
         switch (config.type) {
@@ -16,12 +24,19 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
                 this.play('ptero');
                 break;
             case 3:
-                super(config.scene, config.posX, config.posY, 'stego')
+                super(config.scene, config.posX, config.posY, 'stego');
                 this.play('stego');
                 break;
             case 4:
-                super(config.scene, config.posX, config.posY, 'sphinxIdle')
+                super(config.scene, config.posX, config.posY, 'sphinxIdle');
                 this.play('sphinxIdle')
+                break;
+            case 5:
+                super(config.scene, config.posX, config.posY, 'spikeBall');
+                break;
+            case 6:
+                super(config.scene, config.posX, config.posY, 'brickRotateTest');
+                this.play('brickRotateTest')
                 break;
         }
         config.scene.physics.world.enable(this);
@@ -33,14 +48,22 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.setScale(config.ratio,config.ratio);
         this.body.setBounce(config.bounce);
         this.scene.physics.add.collider(this, this.groundLayer2);
+        this.gravityType = 0
+        this.geyser = {
+            vel : -10,
+            height : 600,//this.scene.gameConfig.height;
+            maxHeight : getRandomRnd(150,400),
+            triggerX : /*getRandomRnd(*/this.scene.config.gameConfig.width/1.5/*, this.scene.config.gameConfig.width - 200)*/,
+        }
         this.create();
     }
 
     create() {
         let scene = this.scene;
         let enemy = this;
-        if (this.type === 2 || this.type === 1){
+        if (this.type === 2 || this.type === 1 || this.type === 5){
             this.body.setGravityY(-scene.config.gameConfig.physics.arcade.gravity.y);
+            this.gravityType = 1
         }else{
             this.body.setGravityY(scene.config.gameConfig.physics.arcade.gravity.y);
             scene.physics.add.collider(enemy, scene.groundLayer, function (cldPlayer, cldCactus) {
@@ -70,7 +93,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         scene.enemyT.push(enemy);
         
         scene.physics.add.overlap(scene.player, enemy, function (cldPlayer, cldCactus) {
-            if (!cldCactus.hasTouched && enemy.type !== 4) {
+            if (!cldCactus.hasTouched) {
                 cldCactus.hasTouched = true;
                 scene.hitDino();
             }
