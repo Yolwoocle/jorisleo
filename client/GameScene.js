@@ -328,7 +328,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         let scene = this;
-        //this.player
+        //PLAYER
         this.player.x = this.config.gameOptions.playerStartPosition;
         if (this.groundLayer2) {
             this.groundLayer2.tilePositionX += 4
@@ -414,11 +414,9 @@ export default class GameScene extends Phaser.Scene {
                     this.player.play('playerWalk');
                 }
             }
-            //hasDoubled = false;
         }
         else {
             this.crouchCounter = 0;
-
         }
         if (this.isSit && this.canLandCrouchSnd && this.player.body.touching.down) {
             this.sound.play('landCrouch');
@@ -446,7 +444,6 @@ export default class GameScene extends Phaser.Scene {
         */
 
         //dynamite spawn
-
         if (this.dyna) {
             this.dyna.angle += 5;
             if (this.dyna.body && this.dyna.body.touching.down) {
@@ -468,9 +465,12 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
+        //Winged cactus vel counter
         this.cactusVelCounter += 0.1;
+
         for (let c in this.enemyT) {
             if (this.enemyT[c]) {
+                //make enemies move
                 let enem = this.enemyT[c];
                 if ((enem.hasLanded && enem.gravityType !== 1 || enem.gravityType === 1)) {
                     if (enem.isDyna && enem.x > this.config.gameOptions.playerStartPosition) {
@@ -507,7 +507,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         
-
+        //CLOUDS
         for (let c in this.cloudT) {
             let clou = this.cloudT[c]; {
                 clou.x -= clou.speed;
@@ -519,9 +519,7 @@ export default class GameScene extends Phaser.Scene {
             this.addCloud(this.config.gameConfig.width, getRandom(0, this.config.gameConfig.height - 100), getRandom(0.5, 2));
         }
 
-        /*
-        CACTUS SPAWNING
-        */
+        //Enemy spawning
 
         //this.waveType = getRandomRnd(0, 10)
 
@@ -539,7 +537,7 @@ export default class GameScene extends Phaser.Scene {
         1 - Winged cactus
         2 - Ptero
         3 - Stegosaurus 
-        4 - UNUSED Sphinx
+        4 - -UNUSED- Sphinx
         5 - Geyser
         6 - TestBrick
         */

@@ -8,6 +8,17 @@ function getRandomRnd(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
+/*
+    Data values :
+    0 - Normal cactus
+    1 - Winged cactus
+    2 - Ptero
+    3 - Stegosaurus 
+    4 - -UNUSED- Sphinx
+    5 - Geyser
+    6 - TestBrick
+*/
+
 export default class Enemy extends Phaser.GameObjects.Sprite { 
     constructor(config) {
         switch (config.type) {
