@@ -19,9 +19,10 @@ function getRandomRnd(min, max) {
     6 - TestBrick
 */
 
-export default class Enemy extends Phaser.GameObjects.Sprite { 
+export default class Enemy extends Phaser.GameObjects.Sprite {
     constructor(config) {
         switch (config.type) {
+            //DEV NOTE : Replace numbers by names
             case 0:
                 let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
                 super(config.scene, config.posX, config.posY, catT[Math.floor(Math.random() * 4)]);
@@ -51,20 +52,22 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
                 break;
         }
         config.scene.physics.world.enable(this);
-        config.scene.add.existing(this);  
+        config.scene.add.existing(this);
         this.scene = config.scene;
-        this.type = config.type;    
+        this.type = config.type;
         this.hasTouched = false;
         this.hasLanded = false;
-        this.setScale(config.ratio,config.ratio);
+        this.setScale(config.ratio, config.ratio);
         this.body.setBounce(config.bounce);
         this.scene.physics.add.collider(this, this.groundLayer2);
         this.gravityType = 0
-        this.geyser = {
-            vel : -10,
-            height : 600,//this.scene.gameConfig.height;
-            maxHeight : getRandomRnd(150,400),
-            triggerX : /*getRandomRnd(*/this.scene.config.gameConfig.width/1.5/*, this.scene.config.gameConfig.width - 200)*/,
+        if (this.type === 5) {
+            this.geyser = {
+                vel: -10,
+                height: 600,//this.scene.gameConfig.height;
+                maxHeight: getRandomRnd(150, 400),
+                triggerX: /*getRandomRnd(*/this.scene.config.gameConfig.width / 1.5/*, this.scene.config.gameConfig.width - 200)*/,
+            }
         }
         this.create();
     }
@@ -72,10 +75,10 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
     create() {
         let scene = this.scene;
         let enemy = this;
-        if (this.type === 2 || this.type === 1 || this.type === 5){
+        if (this.type === 2 || this.type === 1 || this.type === 5) {
             this.body.setGravityY(-scene.config.gameConfig.physics.arcade.gravity.y);
             this.gravityType = 1
-        }else{
+        } else {
             this.body.setGravityY(scene.config.gameConfig.physics.arcade.gravity.y);
             scene.physics.add.collider(enemy, scene.groundLayer, function (cldPlayer, cldCactus) {
                 enemy.hasLanded = true;
@@ -102,7 +105,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         });
 
         scene.enemyT.push(enemy);
-        
+
         scene.physics.add.overlap(scene.player, enemy, function (cldPlayer, cldCactus) {
             if (!cldCactus.hasTouched) {
                 cldCactus.hasTouched = true;

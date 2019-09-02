@@ -11,7 +11,8 @@ export default class Config {
             default: 'arcade',
             arcade: {
                 gravity: { y: 800 },
-                debug: true,
+                debug: false,
+                //Set debug to true to activate debug mode (+ infini-lives)
             }
         },
         pixelArt: true,

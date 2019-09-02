@@ -31,8 +31,7 @@ export default class GameScene extends Phaser.Scene {
         this.sound.add('damage');
         this.sound.add('break');
 
-
-
+        //No idea what this does
         audio: {
             disableWebAudio: false
         }
@@ -96,20 +95,17 @@ export default class GameScene extends Phaser.Scene {
             frameRate: 20,
             repeat : -1
         });
-        //this.add.text(0, 0, 'Subscribe to CaveUpdate on Twitter', { fontFamily: '"Roboto Condensed"' , color : '"black"' });
+        //this.add.text(0, 0, 'This is cool !', { fontFamily: '"Roboto Condensed"' , color : '"black"' });
 
-
+        /*
+        DEV NOTE : Please migrate player-related variables like isSit to the object player itself
+        */
         this.cactusVelCounter = 0;
         this.camera;
-        this.isSit = false;
-        this.sitTimeout;
         this.spawnTimeout = false;
         this.waveType;
         this.canSoundCrouch;
         this.canLandCrouchSnd;
-        this.cameraShake = 0;
-        this.cameraShakePositive = 0;
-        this.cameraShakeDirection = true;
         this.cloudDensSeed = 0;
         var platforms;
         var cursors;
@@ -117,7 +113,7 @@ export default class GameScene extends Phaser.Scene {
         var map;
         var groundLayer;
         var obstacleGroup;
-        this.canSpawn = true;
+        this.canSpawn = false;
         this.groundLayer2;
         this.playerShadow;
         this.enemyT = [];
@@ -133,7 +129,17 @@ export default class GameScene extends Phaser.Scene {
         this.score = 0;
         this.cloudT = [];
 
+        this.levelLayout = [
+            [0, 1000],
+            [2, 5000],
+            [3, 800],
+            [1, 100],
+        ]
+        this.lvlLi = 0;
+
         //CREATE GROUND
+        //groundLayer : actual physical ground
+        //groundLayer2 : visual
         let scene = this;
         this.config = new Config();
         this.groundLayer = this.physics.add.staticSprite(10, this.config.gameConfig.height-10, 'blank');
@@ -141,13 +147,17 @@ export default class GameScene extends Phaser.Scene {
         this.groundLayer.body.immovable = true;
         this.groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
 
-
+        //Create player
         this.player = this.physics.add.sprite(this.config.gameOptions.playerStartPosition, 450, 'playerS2');
-        this.player.depth = 100;
-        this.playerShadow = this.add.sprite((this.config.gameOptions.playerStartPosition - 5), 580, 'playerShadow');
-        this.playerShadow.depth = 1;
-        this.playerShadow.alpha = 0.2;
-        this.playerShadow.blendMode = 'MULTIPLY';
+        this.player.depth = 100; //Player's layer
+        this.playerShadow = this.add.sprite((this.config.gameOptions.playerStartPosition - 5), 585, 'playerShadow');
+        this.playerShadow.depth = -1;
+        this.playerShadow.alpha = 0.3;
+        this.playerShadow.blendMode = 'MULTIPLY'; //No idea what this does
+        this.player.isSit = false;
+        this.life = 3;
+        this.player.sitTimeout; 
+        this.player.isCrouch = false
 
         this.player.play('playerJump');
         this.player.setSize(46, 49, true);
@@ -159,6 +169,7 @@ export default class GameScene extends Phaser.Scene {
         this.hasClicked = false;
         this.physics.add.collider(this.player, this.groundLayer);
         this.player.setInteractive();
+        //Make the player jump when clicked
         this.player.on('pointerdown', function () {
             if (!this.hasClicked) {
                 scene.jump();
@@ -166,17 +177,22 @@ export default class GameScene extends Phaser.Scene {
             }
         })
 
+        //Jump function
         this.jump = function () {
             this.jumpCounter += 1
+            //Reset jump counter when landing on ground
             if (this.player.body.touching.down) {
+                this.hasClicked = false
                 this.player.jumps = 0;
                 this.jumpCounter = 1
             }
+            //s
             if (!this.player.body.touching.down && this.hasCrouched && this.canDouble/*&& !hasDoubled*/) {
                 this.player.jumps -= this.config.gameOptions.doubleJumpsMax;
                 this.canDouble = false;
                 //hasDoubled = true;
             }
+            //Player's jump
             if (this.player.jumps < this.config.gameOptions.jumpNumber && !(this.crouchCounter > this.config.gameOptions.crouchJumpTime)) {
                 this.player.jumps++;
                 this.player.setVelocityY(-this.config.gameOptions.jumpVelocity);
@@ -211,6 +227,7 @@ export default class GameScene extends Phaser.Scene {
             }
             if (!(this.keys.DOWN.isDown || this.keys.S.isDown) && this.crouchCounter > this.config.gameOptions.crouchJumpTime && this.player.body.touching.down) {
                 this.player.setVelocityY(-this.config.gameOptions.jumpVelocity * 1.2);
+                this.player.play('playerJump');
                 this.sound.play('jump1');
                 this.jumpCounter -= 1
             }
@@ -281,7 +298,9 @@ export default class GameScene extends Phaser.Scene {
 
         this.hitDino = function () {
             if (!this.player.isHit) {
-                this.player.play('playerHitA')
+                if(!this.isSit || !this.isCrouch){
+                    this.player.play('playerHitA')
+                }
                 this.sound.play('damage');
                 this.life -= 1;
                 this.player.isHit = true;
@@ -337,6 +356,7 @@ export default class GameScene extends Phaser.Scene {
         this.playerShadow.alpha = (this.player.y / this.config.gameConfig.height) * 0.3;
         this.playerShadow.scaleX = ((this.player.y / this.config.gameConfig.height) * 0.5) + 0.7;
         this.playerShadow.scaleY = 0.5
+        this.playerShadow.x = (this.player.x - 12) + (-this.player.y + this.config.gameConfig.height) * 0.2
 
         if (this.player.isHit) {
             if (this.player.alpha > 0.5) {
@@ -351,20 +371,21 @@ export default class GameScene extends Phaser.Scene {
         }
 
         if (this.keys.DOWN.isDown || this.keys.S.isDown) {
+            this.player.isCrouch = true
             if (this.canSoundCrouch) {
                 this.sound.play('crouch');
                 this.canSoundCrouch = false;
             }
             if (!this.player.body.touching.down) {
                 this.player.setTexture('playerSit');
-                this.isSit = true;
-                window.clearTimeout(this.sitTimeout);
-                this.sitTimeout = setTimeout(function () {
-                    scene.isSit = false;
-                }, 1000)
+                this.player.isSit = true;
+                window.clearTimeout(this.player.sitTimeout);
+                //this.player.sitTimeout = setTimeout(function () {
+                
+                //}, 4)
             }
             else {
-                if (!this.isSit) {
+                if (!this.player.isSit) {
                     this.player.setTexture('playerCrouch');
 
                 }
@@ -380,6 +401,7 @@ export default class GameScene extends Phaser.Scene {
             this.hasCrouched = true
         }
         else {
+            this.player.isCrouch = false
             this.player.body.setGravityY(this.config.gameConfig.physics.arcade.gravity.y);
             this.canSoundCrouch = true;
         }
@@ -392,7 +414,9 @@ export default class GameScene extends Phaser.Scene {
         if (this.crouchCounter > this.config.gameOptions.dynaSpawnTime) {
             this.player.setTexture('playerSitGift');
         }
-
+        if (scene.player.isSit && !(this.keys.DOWN.isDown || this.keys.S.isDown)){
+            scene.player.isSit = false;
+        }
         if (this.life == 0) {
             setTimeout(function () {
                 scene.scene.restart();
@@ -410,7 +434,7 @@ export default class GameScene extends Phaser.Scene {
                 this.crouchCounter++;
             }
             if (this.player.anims.currentAnim.key != 'playerWalk') {
-                if (!this.isSit && !this.player.isHit) {
+                if (!this.player.isSit && !this.player.isHit) {
                     this.player.play('playerWalk');
                 }
             }
@@ -418,11 +442,11 @@ export default class GameScene extends Phaser.Scene {
         else {
             this.crouchCounter = 0;
         }
-        if (this.isSit && this.canLandCrouchSnd && this.player.body.touching.down) {
+        if (this.player.isSit && this.canLandCrouchSnd && this.player.body.touching.down) {
             this.sound.play('landCrouch');
             this.canLandCrouchSnd = false
         }
-        if (!this.isSit) {
+        if (!this.player.isSit) {
             this.canLandCrouchSnd = true
         }
 
@@ -457,7 +481,7 @@ export default class GameScene extends Phaser.Scene {
             }
 
             if (this.flash.alpha > 0) {
-                this.flash.setAlpha(this.flash.alpha - 0.1);
+                this.flash.alpha -= 0.05;
                 this.flash.depth = 999999;
             }
             else {
@@ -465,36 +489,41 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        //Winged cactus vel counter
+        //Winged cactus vel counter (see below)
         this.cactusVelCounter += 0.1;
 
+        //Cycle through every enemy in the enemyT array
         for (let c in this.enemyT) {
             if (this.enemyT[c]) {
-                //make enemies move
                 let enem = this.enemyT[c];
                 if ((enem.hasLanded && enem.gravityType !== 1 || enem.gravityType === 1)) {
-                    if (enem.isDyna && enem.x > this.config.gameOptions.playerStartPosition) {
-                        enem.x += 4;
-                        enem.flipX = true
+                    //If a dynamite is active, destroy the enemy
+                    if (enem.isDyna) {
+                        enem.destroy()
                     }
+                    //If not, make them move to the left
                     else {
                         enem.x -= 4;
                     }
-                    //delete entity after reaching border
+                    //Delete enemy after reaching border
                     if (enem.x < 0 || enem.x > this.config.gameConfig.width || enem.y < 0 || enem.y > this.config.gameConfig.height) {
                         this.enemyT[c].destroy();
                         delete this.enemyT[c];
                         this.enemyT = this.enemyT.filter(function (ct) { if (ct) { return true } });
                     }
                 }
+                //Make winged cactuses move up and down
                 if (enem.type === 1){
                     enem.y += Math.cos(this.cactusVelCounter) * 5;
                 }
+                //Geysers' code
                 if (enem.type === 5 && enem.x < enem.geyser.triggerX){
+                    //If geyser's max height isn't reached, make it grow higher
                     if (enem.geyser.height > enem.geyser.maxHeight){
                         enem.geyser.height -= 6
                     }
                     
+                    //Make the geyser ball go up if it's under the geyser's height, if not do the opposite 
                     if (enem.geyser.height < enem.y){     
                         enem.geyser.vel -= 1.8
                     }
@@ -510,6 +539,7 @@ export default class GameScene extends Phaser.Scene {
         //CLOUDS
         for (let c in this.cloudT) {
             let clou = this.cloudT[c]; {
+                //Make them move
                 clou.x -= clou.speed;
             }
         }
@@ -525,11 +555,12 @@ export default class GameScene extends Phaser.Scene {
 
         this.config.gameOptions.spawnDelay -= 0.1
 
+        console.log(this.levelLayout.length + " " + this.lvlLi)
         if (!this.canSpawn && !this.spawnTimeout) {
             this.spawnTimeout = setTimeout(function () {
                 scene.canSpawn = true;
                 scene.spawnTimeout = false;
-            }, this.config.gameOptions.spawnDelay)
+            }, this.levelLayout[this.lvlLi][1]/*this.config.gameOptions.spawnDelay*/)
         };
         /*
         Data values :
@@ -541,9 +572,13 @@ export default class GameScene extends Phaser.Scene {
         5 - Geyser
         6 - TestBrick
         */
+       
         if (this.canSpawn) {
-            this.canSpawn = false;
-            let type = getRandomRnd(0, 6 +1);
+            this.canSpawn = false;      
+            let type = this.levelLayout[this.lvlLi][0];//0, 6 +1);     
+            if(this.lvlLi < this.levelLayout.length){ 
+                this.lvlLi += 1;
+            }    
             switch (type) {
                 case 0:
                     this.addEnemy(this.config.gameConfig.width, 550, 1, 0.1, type);
@@ -587,6 +622,7 @@ export default class GameScene extends Phaser.Scene {
                     console.log("ERROR SPAWN ENEMY");
                     break;
             } 
+            
         }
     }
 }
