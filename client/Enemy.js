@@ -19,6 +19,7 @@ function getRandomRnd(min, max) {
     6 - TestBrick
 */
 
+
 export default class Enemy extends Phaser.GameObjects.Sprite {
     constructor(config) {
         
