@@ -21,6 +21,7 @@ function getRandomRnd(min, max) {
 
 export default class Enemy extends Phaser.GameObjects.Sprite {
     constructor(config) {
+        
         switch (config.type) {
             //DEV NOTE : Replace numbers by names
             case 0:
@@ -47,8 +48,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
                 super(config.scene, config.posX, config.posY, 'spikeBall');
                 break;
             case 6:
-                super(config.scene, config.posX, config.posY, 'brickRotateTest');
-                this.play('brickRotateTest')
+                super(config.scene, 0, config.posY, 'sphinxLaser');
                 break;
         }
         config.scene.physics.world.enable(this);
@@ -58,7 +58,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.hasTouched = false;
         this.hasLanded = false;
         this.setScale(config.ratio, config.ratio);
-        this.body.setBounce(config.bounce);
+        this.body.setBounce(config.bounce);//DEV NOTE remove this, it's becomen useless
         this.scene.physics.add.collider(this, this.groundLayer2);
         this.gravityType = 0
         if (this.type === 5) {
@@ -69,10 +69,50 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
                 triggerX: /*getRandomRnd(*/this.scene.config.gameConfig.width / 1.5/*, this.scene.config.gameConfig.width - 200)*/,
             }
         }
-        this.create();
+        
+        let scene = this.scene;
+        let enemy = this;
+        if (this.type === 2 || this.type === 1 || this.type === 5 || this.type === 6) { //DEV NOTE 
+            this.body.setGravityY(-scene.config.gameConfig.physics.arcade.gravity.y);
+            this.gravityType = 1
+        } else {
+            this.body.setGravityY(scene.config.gameConfig.physics.arcade.gravity.y);
+            scene.physics.add.collider(enemy, scene.groundLayer, function (cldPlayer, cldCactus) {
+                enemy.hasLanded = true;
+            });
+        }
+        this
+        this.setInteractive();
+        this.on('pointerdown', function () {
+            scene.sound.play('break');
+            if (this.type !== 1) {
+                this.destroy();
+            }
+            else {
+                this.body.setGravityY(scene.config.gameConfig.physics.arcade.gravity.y);
+                this.anims.stop();
+                this.setTexture('cactusS1');
+                this.body.width = this.body.width / 2;
+            }
+        })
+        this.on('pointerover', function (pointer, localX, localY, event) {
+            enemy.setAlpha(0.4);
+        });
+        this.on('pointerout', function (pointer, localX, localY, event) {
+            enemy.setAlpha(1);
+        });
+
+        scene.enemyT.push(enemy);
+
+        scene.physics.add.overlap(scene.player, enemy, function (cldPlayer, cldCactus) {
+            if (!cldCactus.hasTouched) {
+                cldCactus.hasTouched = true;
+                scene.hitDino();
+            }
+        }, null, scene);
     }
 
-    create() {
+    /*create() {
         let scene = this.scene;
         let enemy = this;
         if (this.type === 2 || this.type === 1 || this.type === 5) {
@@ -119,6 +159,6 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
             case 1:
                     cactus.body.width /= 2;
                 break;
-        }*/
-    }
+        }
+    }*/
 } 

@@ -38,6 +38,7 @@ export default class Config {
         spawnDelayDefault : 1000,
         cloudDensity : 25,
         floorHeight : 10,
+        randomLayout : true
     }
 
 } 

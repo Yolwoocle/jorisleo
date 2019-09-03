@@ -1,6 +1,7 @@
 import LoadAssets from "./LoadAssets";
 import Config from "./Config";
 import Enemy from "./Enemy";
+import LevelLayout from "./LevelLayout"
 
 
 function getRandom(min, max) {
@@ -82,7 +83,7 @@ export default class GameScene extends Phaser.Scene {
             key: "sphinxIdle",
             frames: this.anims.generateFrameNumbers("sphinxIdle"),
             frameRate: 2,
-            repeat : -1
+            repeat: -1
         });
         this.anims.create({
             key: "sphinxAttack",
@@ -93,7 +94,7 @@ export default class GameScene extends Phaser.Scene {
             key: "brickRotateTest",
             frames: this.anims.generateFrameNumbers("brickRotateTest"),
             frameRate: 20,
-            repeat : -1
+            repeat: -1
         });
         //this.add.text(0, 0, 'This is cool !', { fontFamily: '"Roboto Condensed"' , color : '"black"' });
 
@@ -103,7 +104,7 @@ export default class GameScene extends Phaser.Scene {
         this.cactusVelCounter = 0;
         this.camera;
         this.spawnTimeout = false;
-        this.waveType;
+        this.waveType = 0;
         this.canSoundCrouch;
         this.canLandCrouchSnd;
         this.cloudDensSeed = 0;
@@ -124,17 +125,13 @@ export default class GameScene extends Phaser.Scene {
         this.crouchCounter;
         this.canDyna = true;
         this.canDouble = false;
-        
+        this.speed = 4
         this.jumpCounter;
         this.score = 0;
         this.cloudT = [];
 
-        this.levelLayout = [
-            [0, 1000],
-            [2, 5000],
-            [3, 800],
-            [1, 100],
-        ]
+        let lvlLyt = new LevelLayout;
+        this.levelLayout = lvlLyt.levelLayout;
         this.lvlLi = 0;
 
         //CREATE GROUND
@@ -142,7 +139,7 @@ export default class GameScene extends Phaser.Scene {
         //groundLayer2 : visual
         let scene = this;
         this.config = new Config();
-        this.groundLayer = this.physics.add.staticSprite(10, this.config.gameConfig.height-10, 'blank');
+        this.groundLayer = this.physics.add.staticSprite(10, this.config.gameConfig.height - 10, 'blank');
         this.groundLayer.setSize(1600, 10);
         this.groundLayer.body.immovable = true;
         this.groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
@@ -156,8 +153,10 @@ export default class GameScene extends Phaser.Scene {
         this.playerShadow.blendMode = 'MULTIPLY'; //No idea what this does
         this.player.isSit = false;
         this.life = 3;
-        this.player.sitTimeout; 
+        this.player.sitTimeout;
         this.player.isCrouch = false
+        this.player.distance = 0
+        this.distanceOffset = 0
 
         this.player.play('playerJump');
         this.player.setSize(46, 49, true);
@@ -247,14 +246,14 @@ export default class GameScene extends Phaser.Scene {
             scene.jump();
         });
 
-        this.addEnemy = function (posX, posY, ratio, bounce, type) {
+        this.addEnemy = function (posY, ratio, bounce, type) {
             let catT;
             let enemy = new Enemy({
                 scene: this,
-                posX: posX, 
-                posY: posY, 
-                ratio: ratio, 
-                bounce: bounce, 
+                posX: this.config.gameConfig.width,
+                posY: posY,
+                ratio: ratio,
+                bounce: bounce,
                 type: type
             });
         }
@@ -270,7 +269,7 @@ export default class GameScene extends Phaser.Scene {
                 cloud.play('cloud2');
             }
             cloud.setDepth(-1000);
-            cloud.speed = ratio * 2;
+            cloud.speed = ratio * 2 * (this.speed / 4);
             cloud.setScale(ratio, ratio);
             cloud.body.setGravityY(-this.config.gameConfig.physics.arcade.gravity.y);
             this.cloudT.push(cloud);
@@ -298,7 +297,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.hitDino = function () {
             if (!this.player.isHit) {
-                if(!this.isSit || !this.isCrouch){
+                if (!this.isSit || !this.isCrouch) {
                     this.player.play('playerHitA')
                 }
                 this.sound.play('damage');
@@ -342,7 +341,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update() {
-        if (this.config.gameConfig.physics.arcade.debug){
+        if (this.config.gameConfig.physics.arcade.debug) {
             this.life = 99999
         }
 
@@ -350,13 +349,14 @@ export default class GameScene extends Phaser.Scene {
         //PLAYER
         this.player.x = this.config.gameOptions.playerStartPosition;
         if (this.groundLayer2) {
-            this.groundLayer2.tilePositionX += 4
+            this.groundLayer2.tilePositionX += this.speed
+            this.player.distance += this.speed
         }
 
         this.playerShadow.alpha = (this.player.y / this.config.gameConfig.height) * 0.3;
         this.playerShadow.scaleX = ((this.player.y / this.config.gameConfig.height) * 0.5) + 0.7;
         this.playerShadow.scaleY = 0.5
-        this.playerShadow.x = (this.player.x - 12) + (-this.player.y + this.config.gameConfig.height) * 0.2
+        //this.playerShadow.x = (this.player.x - 12) + (-this.player.y + this.config.gameConfig.height) * 0.2
 
         if (this.player.isHit) {
             if (this.player.alpha > 0.5) {
@@ -381,7 +381,7 @@ export default class GameScene extends Phaser.Scene {
                 this.player.isSit = true;
                 window.clearTimeout(this.player.sitTimeout);
                 //this.player.sitTimeout = setTimeout(function () {
-                
+
                 //}, 4)
             }
             else {
@@ -414,7 +414,7 @@ export default class GameScene extends Phaser.Scene {
         if (this.crouchCounter > this.config.gameOptions.dynaSpawnTime) {
             this.player.setTexture('playerSitGift');
         }
-        if (scene.player.isSit && !(this.keys.DOWN.isDown || this.keys.S.isDown)){
+        if (scene.player.isSit && !(this.keys.DOWN.isDown || this.keys.S.isDown)) {
             scene.player.isSit = false;
         }
         if (this.life == 0) {
@@ -496,14 +496,16 @@ export default class GameScene extends Phaser.Scene {
         for (let c in this.enemyT) {
             if (this.enemyT[c]) {
                 let enem = this.enemyT[c];
-                if ((enem.hasLanded && enem.gravityType !== 1 || enem.gravityType === 1)) {
+                if ((enem.hasLanded && enem.gravityType !== 1) || enem.gravityType === 1) {
                     //If a dynamite is active, destroy the enemy
                     if (enem.isDyna) {
-                        enem.destroy()
+                        this.enemyT[c].destroy();
+                        delete this.enemyT[c];
+                        this.enemyT = this.enemyT.filter(function (ct) { if (ct) { return true } });
                     }
                     //If not, make them move to the left
                     else {
-                        enem.x -= 4;
+                        enem.x -= this.speed;
                     }
                     //Delete enemy after reaching border
                     if (enem.x < 0 || enem.x > this.config.gameConfig.width || enem.y < 0 || enem.y > this.config.gameConfig.height) {
@@ -513,21 +515,21 @@ export default class GameScene extends Phaser.Scene {
                     }
                 }
                 //Make winged cactuses move up and down
-                if (enem.type === 1){
+                if (enem.type === 1) {
                     enem.y += Math.cos(this.cactusVelCounter) * 5;
                 }
                 //Geysers' code
-                if (enem.type === 5 && enem.x < enem.geyser.triggerX){
+                if (enem.type === 5 && enem.x < enem.geyser.triggerX) {
                     //If geyser's max height isn't reached, make it grow higher
-                    if (enem.geyser.height > enem.geyser.maxHeight){
+                    if (enem.geyser.height > enem.geyser.maxHeight) {
                         enem.geyser.height -= 6
                     }
-                    
+
                     //Make the geyser ball go up if it's under the geyser's height, if not do the opposite 
-                    if (enem.geyser.height < enem.y){     
+                    if (enem.geyser.height < enem.y) {
                         enem.geyser.vel -= 1.8
                     }
-                    else{
+                    else {
                         enem.geyser.vel += 1.8
                     }
                     enem.y += enem.geyser.vel;
@@ -535,16 +537,20 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        
         //CLOUDS
         for (let c in this.cloudT) {
             let clou = this.cloudT[c]; {
                 //Make them move
                 clou.x -= clou.speed;
             }
+            if (clou.x < 0 || clou.x > this.config.gameConfig.width) {
+                clou.destroy();
+                /*delete this.enemyT[c];
+                this.enemyT = this.enemyT.filter(function (ct) { if (ct) { return true } });*/
+            }
         }
 
-        this.cloudDensSeed = getRandomRnd(1, this.config.gameOptions.cloudDensity + 1);
+        this.cloudDensSeed = getRandomRnd(1, (this.config.gameOptions.cloudDensity / (this.speed / 4)) + 1);
         if (this.cloudDensSeed === 1) {
             this.addCloud(this.config.gameConfig.width, getRandom(0, this.config.gameConfig.height - 100), getRandom(0.5, 2));
         }
@@ -553,15 +559,6 @@ export default class GameScene extends Phaser.Scene {
 
         //this.waveType = getRandomRnd(0, 10)
 
-        this.config.gameOptions.spawnDelay -= 0.1
-
-        console.log(this.levelLayout.length + " " + this.lvlLi)
-        if (!this.canSpawn && !this.spawnTimeout) {
-            this.spawnTimeout = setTimeout(function () {
-                scene.canSpawn = true;
-                scene.spawnTimeout = false;
-            }, this.levelLayout[this.lvlLi][1]/*this.config.gameOptions.spawnDelay*/)
-        };
         /*
         Data values :
         0 - Normal cactus
@@ -572,21 +569,40 @@ export default class GameScene extends Phaser.Scene {
         5 - Geyser
         6 - TestBrick
         */
-       
+
+
+        this.config.gameOptions.spawnDelay -= 0.1
+
+        if (!this.canSpawn && this.levelLayout[this.waveType][this.lvlLi][1] <= this.player.distance-this.distanceOffset) {
+            scene.canSpawn = true;
+            scene.spawnTimeout = false;
+            
+        };
+
+        console.log(this.lvlLi)
+
         if (this.canSpawn) {
-            this.canSpawn = false;      
-            let type = this.levelLayout[this.lvlLi][0];//0, 6 +1);     
-            if(this.lvlLi < this.levelLayout.length){ 
+            this.canSpawn = false;
+            let type;
+            type = this.levelLayout[this.waveType][this.lvlLi][0];
+            if (this.lvlLi < this.levelLayout[this.waveType][this.lvlLi].length) {
                 this.lvlLi += 1;
-            }    
-            switch (type) {
-                case 0:
-                    this.addEnemy(this.config.gameConfig.width, 550, 1, 0.1, type);
+            }
+            else{
+                let prevWT = this.waveType;
+                //DEV NOTE : prevent repetition in waves
+                    this.waveType = getRandomRnd(0, this.levelLayout.length)
+                this.lvlLi = 0
+                this.distanceOffset = this.player.distance
+            }
+            switch (type) {  
+                case 'cactus':
+                    this.addEnemy(550, 1, 0.1, 0);
                     break;
-                case 1:
-                    this.addEnemy(this.config.gameConfig.width, getRandom(100, this.config.gameConfig.height), 2, 1, type);
+                case 'cactuswing':
+                    this.addEnemy(getRandom(100, this.config.gameConfig.height), 2, 1, 1);
                     break;
-                case 2:
+                case 'ptero':
                     let randomSeed = this.config.gameOptions.pteroOffset;
                     let randomOne;
                     let randomTwo;
@@ -602,27 +618,26 @@ export default class GameScene extends Phaser.Scene {
                     else {
                         randomTwo = this.player.y + randomSeed
                     }
-                    this.addEnemy(this.config.gameConfig.width, getRandom(randomOne, randomTwo), 1, 0, type);
+                    this.addEnemy(getRandom(randomOne, randomTwo), 1, 0, 2);
                     break;
-                case 3:
-                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0.1, type);
+                case 'stego':
+                    this.addEnemy(550, 2, 0.1, 3);
                     break;
-                case 4:
-                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0, type);
+                case 'sphinx':
+                    this.addEnemy(550, 2, 0, 4);
                     break;
-                case 5:
-                    this.addEnemy(this.config.gameConfig.width, this.config.gameConfig.height-30, 1, 0.1, type);
-                    let rect = this.add.rectangle(this.config.gameConfig.width, this.config.gameConfig.height - this.config.gameOptions.floorHeight,0,37,); 
+                case 'geyser':
+                    this.addEnemy(this.config.gameConfig.height - 30, 1, 0.1, 5);
+                    let rect = this.add.rectangle(this.config.gameConfig.width, this.config.gameConfig.height - this.config.gameOptions.floorHeight, 0, 37);
                     this.geyserRectangleT.push(rect);
                     break;
-                case 6:
-                    this.addEnemy(this.config.gameConfig.width, 550, 2, 0, type);
-                    break;
                 default:
-                    console.log("ERROR SPAWN ENEMY");
+                    if (this.levelLayout[this.lvlLi] !== []) {
+                        console.log("ERROR SPAWN ENEMY");
+                    }
                     break;
-            } 
-            
+            }
+
         }
     }
 }
