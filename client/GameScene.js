@@ -125,7 +125,7 @@ export default class GameScene extends Phaser.Scene {
         this.crouchCounter;
         this.canDyna = true;
         this.canDouble = false;
-        this.speed = 4
+        this.speed = 6
         this.jumpCounter;
         this.score = 0;
         this.cloudT = [];
@@ -585,7 +585,7 @@ export default class GameScene extends Phaser.Scene {
             this.canSpawn = false;
             let type;
             type = this.levelLayout[this.waveType][this.lvlLi][0];
-            if (this.lvlLi < this.levelLayout[this.waveType][this.lvlLi].length) {
+            if (this.lvlLi < this.levelLayout[this.waveType].length) {
                 this.lvlLi += 1;
             }
             else{

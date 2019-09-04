@@ -6,6 +6,10 @@ export default class LevelLayout {
                 ['cactus', 400],
                 ['cactus', 600],
                 ['cactus', 800],
+                ['cactus', 1000],
+                ['cactus', 1200],
+                ['cactus', 1400],
+                ['cactus', 1600],
                 [],
             ],
             [
