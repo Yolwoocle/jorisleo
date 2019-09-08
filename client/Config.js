@@ -11,7 +11,7 @@ export default class Config {
             default: 'arcade',
             arcade: {
                 gravity: { y: 800 },
-                debug: false,
+                debug: true,
                 //Set debug to true to activate debug mode (+ infini-lives)
             }
         },
@@ -38,7 +38,6 @@ export default class Config {
         spawnDelayDefault : 1000,
         cloudDensity : 25,
         floorHeight : 10,
-        randomLayout : true,
         speed : 6,
     }
 

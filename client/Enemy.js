@@ -22,12 +22,15 @@ function getRandomRnd(min, max) {
 
 export default class Enemy extends Phaser.GameObjects.Sprite {
     constructor(config) {
+        super(config.thescene, config.posX, config.posY, config.texture);
+        
+        console.log("debug2")
         
         switch (config.type) {
             //DEV NOTE : Replace numbers by names
             case 0:
-                let catT = ['cactusS1', 'cactusS2', 'cactusB1', 'cactusB2'];
-                super(config.scene, config.posX, config.posY, catT[Math.floor(Math.random() * 4)]);
+                
+                
                 break;
             case 1:
                 super(config.scene, config.posX, config.posY, 'cactusW1');

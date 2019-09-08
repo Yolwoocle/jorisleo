@@ -2,6 +2,8 @@ import LoadAssets from "./LoadAssets";
 import Config from "./Config";
 import Enemy from "./Enemy";
 import LevelLayout from "./LevelLayout"
+import Cactus from "./Cactus"
+import Player from "./Player"
 
 
 function getRandom(min, max) {
@@ -99,8 +101,11 @@ export default class GameScene extends Phaser.Scene {
         //this.add.text(0, 0, 'This is cool !', { fontFamily: '"Roboto Condensed"' , color : '"black"' });
 
         /*
-        DEV NOTE : Please migrate player-related variables like isSit to the object player itself
+        DEV NOTE : Please migrate player or specific object-related variables like isSit to the class itself
         */
+
+        let scene = this;
+
         this.cactusVelCounter = 0;
         this.camera;
         this.spawnTimeout = false;
@@ -137,7 +142,8 @@ export default class GameScene extends Phaser.Scene {
         //CREATE GROUND
         //groundLayer : actual physical ground
         //groundLayer2 : visual
-        let scene = this;
+        
+        
         this.config = new Config();
         this.groundLayer = this.physics.add.staticSprite(10, this.config.gameConfig.height - 10, 'blank');
         this.groundLayer.setSize(1600, 10);
@@ -145,43 +151,25 @@ export default class GameScene extends Phaser.Scene {
         this.groundLayer2 = this.add.tileSprite(400, 572, 1200, 25, 'ground');
 
         //Create player
-        this.player = this.physics.add.sprite(this.config.gameOptions.playerStartPosition, 450, 'playerS2');
-        this.player.depth = 100; //Player's layer
+        this.player = new Player({
+            scene: this,
+        });
+
+        this.life = 3;
+        //this.player.setCollideWorldBounds(true);
+        this.distanceOffset = 0
+
+        //Create Player shadow
         this.playerShadow = this.add.sprite((this.config.gameOptions.playerStartPosition - 5), 585, 'playerShadow');
         this.playerShadow.depth = -1;
         this.playerShadow.alpha = 0.3;
-        this.playerShadow.blendMode = 'MULTIPLY'; //No idea what this does
-        this.player.isSit = false;
-        this.life = 3;
-        this.player.sitTimeout;
-        this.player.isCrouch = false
-        this.player.distance = 0
-        this.distanceOffset = 0
-
-        this.player.play('playerJump');
-        this.player.setSize(46, 49, true);
-        this.player.setCollideWorldBounds(true);
-        this.player.body.setGravityY(this.config.gameConfig.physics.arcade.gravity.y);
-        this.player.jumps = 0;
-        this.player.isHit = false;
-        this.player.isInvulnerable = false;
-        this.hasClicked = false;
-        this.physics.add.collider(this.player, this.groundLayer);
-        this.player.setInteractive();
-        //Make the player jump when clicked
-        this.player.on('pointerdown', function () {
-            if (!this.hasClicked) {
-                scene.jump();
-                this.hasClicked = true
-            }
-        })
+        this.playerShadow.blendMode = 'MULTIPLY'; //No idea what this does but without it it doesn't work
 
         //Jump function
         this.jump = function () {
             this.jumpCounter += 1
             //Reset jump counter when landing on ground
             if (this.player.body.touching.down) {
-                this.hasClicked = false
                 this.player.jumps = 0;
                 this.jumpCounter = 1
             }
@@ -247,15 +235,22 @@ export default class GameScene extends Phaser.Scene {
         });
 
         this.addEnemy = function (posY, ratio, bounce, type) {
-            let catT;
-            let enemy = new Enemy({
+            /*let enemy = new Enemy({
                 scene: this,
                 posX: this.config.gameConfig.width,
                 posY: posY,
                 ratio: ratio,
                 bounce: bounce,
                 type: type
-            });
+            });*/
+            let enemy = new Cactus({
+                scene: this,
+                posX: this.config.gameConfig.width,
+                posY: posY,
+                ratio: ratio,
+                bounce: bounce,
+                type: type
+            })
         }
 
         this.addCloud = function (posX, posY, ratio) {
@@ -427,7 +422,6 @@ export default class GameScene extends Phaser.Scene {
         }
 
         if (this.player.body.touching.down) {
-            this.hasClicked = false
             this.hasCrouched = false;
             this.canDouble = true;
             if (this.keys.DOWN.isDown || this.keys.S.isDown) {
@@ -579,22 +573,25 @@ export default class GameScene extends Phaser.Scene {
             
         };
 
-        console.log(this.lvlLi)
+        console.log(this.levelLayout[this.waveType].length)
 
         if (this.canSpawn) {
             this.canSpawn = false;
             let type;
             type = this.levelLayout[this.waveType][this.lvlLi][0];
-            if (this.lvlLi < this.levelLayout[this.waveType].length) {
+            if (this.lvlLi < this.levelLayout[this.waveType].length - 1) {
                 this.lvlLi += 1;
             }
             else{
                 let prevWT = this.waveType;
                 //DEV NOTE : prevent repetition in waves
-                    this.waveType = getRandomRnd(0, this.levelLayout.length)
+                this.waveType = getRandomRnd(0, this.levelLayout.length)
                 this.lvlLi = 0
                 this.distanceOffset = this.player.distance
             }
+
+            this.addEnemy(550, 1, 0.1, 0);
+            
             switch (type) {  
                 case 'cactus':
                     this.addEnemy(550, 1, 0.1, 0);

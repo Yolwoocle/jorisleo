@@ -2,14 +2,14 @@ export default class LevelLayout {
     constructor() {
         this.levelLayout = [
             [
-                ['cactus', 200],
-                ['cactus', 400],
-                ['cactus', 600],
-                ['cactus', 800],
-                ['cactus', 1000],
-                ['cactus', 1200],
-                ['cactus', 1400],
-                ['cactus', 1600],
+                ['cactuswing', 200],
+                ['cactuswing', 400],
+                ['cactuswing', 600],
+                ['cactuswing', 800],
+                ['cactuswing', 1000],
+                ['cactuswing', 1200],
+                ['cactuswing', 1400],
+                ['cactuswing', 1600],
                 [],
             ],
             [
